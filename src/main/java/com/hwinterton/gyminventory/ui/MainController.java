@@ -1,5 +1,8 @@
 package com.hwinterton.gyminventory.ui;
 
+import com.hwinterton.gyminventory.security.AuthorizationService;
+import com.hwinterton.gyminventory.security.SessionManager;
+import com.hwinterton.gyminventory.service.AuditService;
 import com.hwinterton.gyminventory.domain.Role;
 import com.hwinterton.gyminventory.domain.User;
 import javafx.fxml.FXML;
@@ -27,13 +30,25 @@ public class MainController {
         manageProductsButton.setDisable(!canManage);
     }
 
+    private final AuditService auditService = new AuditService();
+    
     @FXML
     private void onLogout() {
+        if (SessionManager.isLoggedIn()) {
+            var user = SessionManager.getUser();
+            auditService.log(user.getId(), "LOGOUT", "User logged out");
+        }
+        SessionManager.clear();
         Router.showLogin();
     }
 
     @FXML
     private void onManageProducts() {
-        System.out.println("Manage Products clicked by " + currentUser.getRole());
+        var user = SessionManager.getUser();
+        AuthorizationService.requireAnyRole(user,
+                Role.OWNER,
+                Role.MANAGER
+        );
+        System.out.println("Manage Products clicked by " + user.getRole());
     }
 }

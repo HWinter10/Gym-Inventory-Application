@@ -1,5 +1,6 @@
 package com.hwinterton.gyminventory.ui;
 
+import com.hwinterton.gyminventory.security.SessionManager;
 import com.hwinterton.gyminventory.service.AuthenticationService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -20,7 +21,10 @@ public class LoginController {
         String password = passwordField.getText();
 
         authService.login(username, password).ifPresentOrElse(
-                Router::showMain,
+                user -> {
+                    SessionManager.setUser(user);
+                    Router.showMain(user);
+                },
                 () -> messageLabel.setText("Invalid username or password.")
         );
     }

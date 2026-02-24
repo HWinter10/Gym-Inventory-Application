@@ -28,9 +28,21 @@ public final class SchemaInitializer {
                 );
                 """;
 
+        String auditSql = """
+                CREATE TABLE IF NOT EXISTS audit_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    action TEXT NOT NULL,
+                    details TEXT,
+                    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                    FOREIGN KEY(user_id) REFERENCES users(id)
+                );
+                """;
+
         try (Connection conn = Database.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(usersSql);
+            stmt.execute(auditSql);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create tables", e);
         }
