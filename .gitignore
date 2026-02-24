@@ -1,0 +1,16 @@
+# Maven / Java
+target/
+*.class
+*.log
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SQLite DB if it ends up in your project (currently should not)
+*.db
