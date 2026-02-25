@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hwinterton.gyminventory.ui.UserManagementController"
+      spacing="12"
+      alignment="CENTER"
+      prefWidth="560"
+      prefHeight="340">
+
+    <Label text="User Management (Owner Only)" />
+
+    <TextField fx:id="usernameField" promptText="New username" />
+    <ComboBox fx:id="roleCombo" promptText="Select role" />
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Create User" onAction="#onCreateUser" />
+        <Button text="Back" onAction="#onBack" />
+    </HBox>
+
+    <Label fx:id="messageLabel" wrapText="true" />
+</VBox>

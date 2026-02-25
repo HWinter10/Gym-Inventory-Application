@@ -23,7 +23,11 @@ public class LoginController {
         authService.login(username, password).ifPresentOrElse(
                 user -> {
                     SessionManager.setUser(user);
-                    Router.showMain(user);
+                    if (user.mustChangePassword()) {
+                        Router.showChangePassword();
+                    } else {
+                        Router.showMain(user);
+                    }
                 },
                 () -> messageLabel.setText("Invalid username or password.")
         );

@@ -11,7 +11,7 @@ public class AuthenticationService {
     private final AuditService auditService = new AuditService();
 
     public Optional<User> login(String username, String password) {
-        String u = username == null ? "" : username.trim();
+    	String u = (username == null) ? "" : username.trim().toLowerCase();
 
         if (u.isBlank() || password == null || password.isBlank()) {
             auditService.log(null, "LOGIN_FAILED", "Blank username or password");

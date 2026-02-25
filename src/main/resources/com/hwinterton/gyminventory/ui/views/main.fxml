@@ -15,11 +15,8 @@
     <Label fx:id="welcomeLabel" text="Welcome" />
     <Label fx:id="roleLabel" text="Role:" />
 
-    <Button fx:id="manageProductsButton"
-            text="Manage Products"
-            onAction="#onManageProducts"/>
-
-    <Button text="Logout"
-            onAction="#onLogout"/>
+    <Button fx:id="manageUsersButton" text="Manage Users" onAction="#onManageUsers"/>
+    <Button fx:id="manageProductsButton" text="Manage Products" onAction="#onManageProducts"/>
+    <Button text="Logout" onAction="#onLogout"/>
 
 </VBox>

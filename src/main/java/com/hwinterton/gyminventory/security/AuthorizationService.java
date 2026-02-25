@@ -7,16 +7,15 @@ public final class AuthorizationService {
 
     private AuthorizationService() {}
 
-    public static void requireAnyRole(User user, Role... allowed) {
-        for (Role role : allowed) {
-            if (user.getRole() == role) return;
-        }
-        throw new SecurityException("Not authorized for this action.");
+    public static boolean canManageUsers(User user) {
+        return user.getRole() == Role.OWNER;
     }
 
-    public static void requireLogin() {
-        if (!SessionManager.isLoggedIn()) {
-            throw new SecurityException("Not logged in.");
-        }
+    public static boolean canManageProducts(User user) {
+        return user.getRole() == Role.OWNER || user.getRole() == Role.MANAGER;
+    }
+
+    public static void require(boolean condition) {
+        if (!condition) throw new SecurityException("Not authorized for this action.");
     }
 }
