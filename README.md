@@ -22,15 +22,21 @@ SQLite
 JDBC
 Maven
 
-UML Class Architecture:
+
+
+Whole System UML Class Diagram:
 <img width="1243" height="1160" alt="M4 Class-diagram" src="https://github.com/user-attachments/assets/8e5e0aaf-94c7-4cb6-b0ea-26a9f4620a33" />
 
 
-UML State-User:
+
+
+User State Diagram:
 
 <img width="624" height="346" alt="M4 user-state-diagram" src="https://github.com/user-attachments/assets/0e452238-0c5f-48a5-b85c-21c5784944ce" />
 
 
-UML State-Inventory Object:
+
+
+Inventory Object State Diagram:
 
 <img width="689" height="349" alt="M4 inventory-state-diagram" src="https://github.com/user-attachments/assets/ca8e69a7-721d-4aa4-bbd9-8d0df432ed71" />
