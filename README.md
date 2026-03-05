@@ -16,12 +16,14 @@ The application is built using Java, JavaFX, and SQLite and follows a layered ar
 • Modular layered architecture to improve maintainability
 
 <Strong>Technologies used:</Strong>
-
-Java
-JavaFX
-SQLite
-JDBC
-Maven
+<br>
+<ul>
+  <li>Java</li>
+  <li>JavaFX</li>
+  <li>SQLite</li>
+  <li>JDBC</li>
+  <li>Maven</li>
+</ul>
 
 
 
@@ -30,13 +32,9 @@ Maven
 <img width="1243" height="1160" alt="M4 Class-diagram" src="https://github.com/user-attachments/assets/8e5e0aaf-94c7-4cb6-b0ea-26a9f4620a33" />
 
 
-
-
 <Strong>User State:</Strong>
 <br>
 <img width="624" height="346" alt="M4 user-state-diagram" src="https://github.com/user-attachments/assets/0e452238-0c5f-48a5-b85c-21c5784944ce" />
-
-
 
 
 <Strong>Inventory Object State Diagram:</Strong>
