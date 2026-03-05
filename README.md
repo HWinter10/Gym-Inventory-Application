@@ -1,0 +1,1 @@
+IN PROGRESS--Secure desktop application for inventory tracking and sales management built with Java, JavaFX, and SQLite. Implements role-based access control, automated inventory updates during transactions, and audit logging for administrative actions.
