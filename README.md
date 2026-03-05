@@ -8,12 +8,14 @@ The application is built using Java, JavaFX, and SQLite and follows a layered ar
 
 <Strong>Key features include:</Strong>
 
-• Role-based access control for owner, employee, and restricted users
-• Secure authentication with hashed passwords
-• Inventory tracking with automatic quantity updates during sales
-• Administrative inventory adjustments with audit logging
-• Local SQLite database for lightweight data persistence
-• Modular layered architecture to improve maintainability
+<ul>
+  <li>Role-based access control for owner, employee, and restricted users</li>
+  <li>Secure authentication with hashed passwords</li>
+  <li>Inventory tracking with automatic quantity updates during sales</li>
+  <li>Administrative inventory adjustments with audit logging</li>
+  <li>Local SQLite database for lightweight data persistence</li>
+  <li>Modular layered architecture to improve maintainability</li>
+</ul>
 
 <Strong>Technologies used:</Strong>
 <br>
