@@ -27,8 +27,10 @@ UML Class Architecture:
 
 
 UML State-User:
+
 <img width="624" height="346" alt="M4 user-state-diagram" src="https://github.com/user-attachments/assets/0e452238-0c5f-48a5-b85c-21c5784944ce" />
 
 
 UML State-Inventory Object:
+
 <img width="689" height="349" alt="M4 inventory-state-diagram" src="https://github.com/user-attachments/assets/ca8e69a7-721d-4aa4-bbd9-8d0df432ed71" />
