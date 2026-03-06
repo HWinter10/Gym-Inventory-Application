@@ -27,12 +27,12 @@ The application is built using Java, JavaFX, and SQLite and follows a layered ar
 
 
 ### System architecture:
-<img width="1243" height="1160" alt="M4 Class-diagram" src="https://github.com/user-attachments/assets/8e5e0aaf-94c7-4cb6-b0ea-26a9f4620a33" />
+<img width="800" alt="M4 Class-diagram" src="https://github.com/user-attachments/assets/8e5e0aaf-94c7-4cb6-b0ea-26a9f4620a33" />
 
 
 ### User State:
-<img width="624" height="346" alt="M4 user-state-diagram" src="https://github.com/user-attachments/assets/0e452238-0c5f-48a5-b85c-21c5784944ce" />
+<img width="500" alt="M4 user-state-diagram" src="https://github.com/user-attachments/assets/0e452238-0c5f-48a5-b85c-21c5784944ce" />
 
 
 ### Inventory Object State Diagram:
-<img width="689" height="349" alt="M4 inventory-state-diagram" src="https://github.com/user-attachments/assets/ca8e69a7-721d-4aa4-bbd9-8d0df432ed71" />
+<img width="500" alt="M4 inventory-state-diagram" src="https://github.com/user-attachments/assets/ca8e69a7-721d-4aa4-bbd9-8d0df432ed71" />
