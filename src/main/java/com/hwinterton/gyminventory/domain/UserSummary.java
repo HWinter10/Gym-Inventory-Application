@@ -1,11 +1,11 @@
 /*
  * Purpose:
- * - represents authenticated system user
+ * - represents user summary view for administration screens
  * 
  * Function:
- * - stores user identity and role
- * - indicates account status and password change requirement
- * - used across authentication and authorization logic
+ * - stores basic user account information
+ * - supports displaying user list in admin table
+ * - excludes password hash and sensitive authentication data
  * 
  * Dependencies:
  * - Role enum
@@ -13,15 +13,15 @@
 
 package com.hwinterton.gyminventory.domain;
 
-public class User {
+public class UserSummary {
     private final long id; // unique user id from database
     private final String username; // login name
     private final Role role; // system access role
     private final boolean active; // indicates account enabled status
     private final boolean mustChangePassword; // requires password change at next login
 
-    // Method - construct user domain object
-    public User(long id, String username, Role role, boolean active, boolean mustChangePassword) {
+    // Method - construct user summary object
+    public UserSummary(long id, String username, Role role, boolean active, boolean mustChangePassword) {
         this.id = id;
         this.username = username;
         this.role = role;

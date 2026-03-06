@@ -1,54 +1,102 @@
+/*
+ * Purpose:
+ * - controls main menu screen
+ * 
+ * Function:
+ * - displays logged in user info
+ * - enables or disables buttons based on role
+ * - routes to screens like User Management
+ * 
+ * Dependencies:
+ * - SessionManager to get current user
+ * - Router for navigation
+ */
+
 package com.hwinterton.gyminventory.ui;
 
 import com.hwinterton.gyminventory.domain.Role;
 import com.hwinterton.gyminventory.domain.User;
-import com.hwinterton.gyminventory.security.AuthorizationService;
 import com.hwinterton.gyminventory.security.SessionManager;
-import com.hwinterton.gyminventory.service.AuditService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
 public class MainController {
 
-    @FXML private Label welcomeLabel;
-    @FXML private Label roleLabel;
+    @FXML private Label welcomeLabel; // displays logged in user information
 
-    @FXML private Button manageUsersButton;
-    @FXML private Button manageProductsButton;
+    @FXML private Button manageUsersButton; // navigates to user management screen
+    @FXML private Button manageProductsButton; // navigates to product management screen
 
-    private final AuditService auditService = new AuditService();
-    private User currentUser;
+    // Method - initialize main menu after FXML load
+    @FXML
+    private void initialize() {
 
-    public void setUser(User user) {
-        this.currentUser = user;
+        // get current logged in user
+        User user = SessionManager.getUser();
 
-        welcomeLabel.setText("Welcome, " + user.getUsername());
-        roleLabel.setText("Role: " + user.getRole());
+        // redirect to login if session missing
+        if (user == null) {
+            Router.showLogin();
+            return;
+        }
 
-        manageUsersButton.setDisable(!AuthorizationService.canManageUsers(user));
+        // display username and role in welcome label
+        welcomeLabel.setText("Logged in as: " + user.getUsername() + " (" + user.getRole() + ")");
 
-        boolean canManageProducts = user.getRole() == Role.OWNER || user.getRole() == Role.MANAGER;
-        manageProductsButton.setDisable(!canManageProducts);
+        // determine owner role for permission checks
+        boolean isOwner = user.getRole() == Role.OWNER;
+
+        // disable user management for non owners
+        if (manageUsersButton != null) manageUsersButton.setDisable(!isOwner);
+
+        // product management available to all roles
+        if (manageProductsButton != null) manageProductsButton.setDisable(false);
     }
 
+    // Method - handle user management button action
     @FXML
     private void onManageUsers() {
+
+        // confirm active session
+        User user = SessionManager.getUser();
+        if (user == null) {
+            Router.showLogin();
+            return;
+        }
+
+        // restrict access to owner role
+        if (user.getRole() != Role.OWNER) {
+            return;
+        }
+
+        // navigate to user management screen
         Router.showUserManagement();
     }
 
+    // Method - handle product management button action
     @FXML
     private void onManageProducts() {
-        System.out.println("Manage Products clicked by " + currentUser.getRole());
+
+        // confirm active session
+        User user = SessionManager.getUser();
+        if (user == null) {
+            Router.showLogin();
+            return;
+        }
+
+        // navigate to product management screen
+        Router.showProductManagement();
     }
 
+    // Method - handle logout action
     @FXML
     private void onLogout() {
-        if (SessionManager.isLoggedIn()) {
-            var user = SessionManager.getUser();
-            auditService.log(user.getId(), "LOGOUT", "User logged out");
-        }
+
+        // clear session user
         SessionManager.clear();
+
+        // return to login screen
         Router.showLogin();
     }
 }

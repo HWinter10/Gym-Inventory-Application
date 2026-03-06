@@ -7,20 +7,41 @@
 <VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.hwinterton.gyminventory.ui.UserManagementController"
-      spacing="12"
+      spacing="10"
       alignment="CENTER"
-      prefWidth="560"
-      prefHeight="340">
+      prefWidth="760"
+      prefHeight="520">
 
-    <Label text="User Management (Owner Only)" />
-
-    <TextField fx:id="usernameField" promptText="New username" />
-    <ComboBox fx:id="roleCombo" promptText="Select role" />
+    <Label text="User Management (Owner Only)" style="-fx-font-size: 18px;" />
 
     <HBox spacing="10" alignment="CENTER">
+        <TextField fx:id="newUsernameField" promptText="New username" />
+        <ComboBox fx:id="newRoleCombo" promptText="Role" />
         <Button text="Create User" onAction="#onCreateUser" />
+    </HBox>
+
+    <TableView fx:id="userTable" prefHeight="320" prefWidth="720">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="80" />
+            <TableColumn fx:id="colUsername" text="Username" prefWidth="320" />
+            <TableColumn fx:id="colRole" text="Role" prefWidth="180" />
+            <TableColumn fx:id="colActive" text="Active" prefWidth="120" />
+        </columns>
+    </TableView>
+
+    <HBox spacing="10" alignment="CENTER">
+        <ComboBox fx:id="editRoleCombo" promptText="Set role" />
+        <Button text="Apply Role" onAction="#onApplyRole" />
+        <Button text="Disable" onAction="#onDisable" />
+        <Button text="Enable" onAction="#onEnable" />
+        <Button text="Reset Password" onAction="#onResetPassword" />
+    </HBox>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Refresh" onAction="#onRefresh" />
         <Button text="Back" onAction="#onBack" />
     </HBox>
 
     <Label fx:id="messageLabel" wrapText="true" />
+
 </VBox>
