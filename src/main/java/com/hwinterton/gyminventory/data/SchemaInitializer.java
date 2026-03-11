@@ -1,19 +1,19 @@
 /*
  * Purpose:
- * - creates database tables and seeds initial required data
+ * - creates required database tables and seeds initial system accounts on first run
  * 
  * Function:
- * - creates required tables if missing
- * - detects first run by checking whether users already exist
- * - generates temporary passwords for owner and backup owner accounts
- * - stores hashed passwords only
- * - records first run credentials in StartupContext for display
+ * - creates users, audit_log, and products tables if they do not already exist
+ * - checks whether any users already exist in the database
+ * - on first run only, generates temporary passwords for owner and owner_backup accounts
+ * - stores only hashed passwords in the database
+ * - saves generated temporary passwords in StartupContext so they can be shown once on the first run setup screen
  * 
  * Dependencies:
  * - Database connection helper
  * - PasswordUtil for password hashing
  * - CredentialGenerator for temporary password generation
- * - StartupContext for first run credential display
+ * - StartupContext for temporarily storing first run credentials for display
  */
 
 package com.hwinterton.gyminventory.data;
@@ -42,6 +42,7 @@ public final class SchemaInitializer {
 
     // Method - create required database tables
     private static void createTables() {
+    	// users table: stores login credentials, role, account status, and forced password change flag
         String usersTable = """
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +53,8 @@ public final class SchemaInitializer {
                     must_change_password INTEGER NOT NULL DEFAULT 0
                 );
                 """;
-
+        
+        // audit_log table: records traceable security and administrative actions
         String auditTable = """
                 CREATE TABLE IF NOT EXISTS audit_log (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,11 +65,24 @@ public final class SchemaInitializer {
                 );
                 """;
 
+        // products table: stores inventory catalog items and reorder-related values
+        String productsTable = """
+                CREATE TABLE IF NOT EXISTS products (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL UNIQUE,
+                    category TEXT NOT NULL,
+                    quantity_on_hand INTEGER NOT NULL DEFAULT 0,
+                    reorder_threshold INTEGER NOT NULL DEFAULT 0,
+                    active INTEGER NOT NULL DEFAULT 1
+                );
+                """;
+
         try (Connection conn = Database.getConnection()) {
             conn.createStatement().execute(usersTable);
             conn.createStatement().execute(auditTable);
+            conn.createStatement().execute(productsTable);
 
-        } catch (Exception e) {
+        } catch (Exception e) { // table creation failure
             throw new RuntimeException("Failed to create tables", e);
         }
     }
@@ -85,19 +100,22 @@ public final class SchemaInitializer {
             }
             return false;
 
-        } catch (Exception e) {
+        } catch (Exception e) { // user existence check failure
             throw new RuntimeException("Failed to check existing users", e);
         }
     }
 
     // Method - create first run owner accounts with generated temporary passwords
     private static void seedInitialOwnerAccounts() {
+    	// generate temporary plain text passwords for first run display
         String ownerPassword = CredentialGenerator.generatePassword();
         String backupPassword = CredentialGenerator.generatePassword();
 
+        // insert fixed recovery usernames with generated temporary passwords
         insertInitialUser("owner", ownerPassword, "OWNER", true, true);
         insertInitialUser("owner_backup", backupPassword, "OWNER", true, true);
 
+        // store temporary passwords in memory so first run setup screen can display them once
         StartupContext.setFirstRunCredentials(ownerPassword, backupPassword);
     }
 
@@ -119,7 +137,7 @@ public final class SchemaInitializer {
 
             insert.executeUpdate();
 
-        } catch (Exception e) {
+        } catch (Exception e) { // initial user insert failure
             throw new RuntimeException("Failed to insert initial user: " + username, e);
         }
     }

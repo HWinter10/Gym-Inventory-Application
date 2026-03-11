@@ -1,10 +1,11 @@
 /*
  * Purpose:
- * - represents product record in inventory catalog
+ * - represents a product record in the inventory catalog
  * 
  * Function:
- * - stores product identity, category, pricing, stock level, reorder threshold, and active status
- * - used across product management, sales, and inventory logic
+ * - stores core product identity and inventory tracking values
+ * - provides product data to product management, sales, and reorder logic
+ * - reflects an inventory-only design, so no price field is included
  * 
  * Dependencies:
  * - none
@@ -16,17 +17,15 @@ public class Product {
     private final long id; // unique product id from database
     private final String name; // product display name
     private final String category; // product category such as drink, supplement, apparel
-    private final double price; // sales price
     private final int quantityOnHand; // current quantity available
     private final int reorderThreshold; // threshold for low stock / reorder logic
     private final boolean active; // indicates whether product is active in catalog
 
     // Method - construct product domain object
-    public Product(long id, String name, String category, double price, int quantityOnHand, int reorderThreshold, boolean active) {
+    public Product(long id, String name, String category, int quantityOnHand, int reorderThreshold, boolean active) {
         this.id = id;
         this.name = name;
         this.category = category;
-        this.price = price;
         this.quantityOnHand = quantityOnHand;
         this.reorderThreshold = reorderThreshold;
         this.active = active;
@@ -45,11 +44,6 @@ public class Product {
     // Method - return product category
     public String getCategory() {
         return category;
-    }
-
-    // Method - return product price
-    public double getPrice() {
-        return price;
     }
 
     // Method - return quantity on hand
