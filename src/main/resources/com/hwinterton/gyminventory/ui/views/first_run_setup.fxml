@@ -13,7 +13,7 @@
       prefHeight="320">
 
     <Label text="First Run Setup" style="-fx-font-size: 18px;" />
-    <Label text="Write these down. You will be forced to change passwords after login." />
+    <Label text="Write these down. You will be forced to change passwords after login." wrapText="true" />
 
     <Label fx:id="ownerLabel" text="owner: " />
     <Label fx:id="backupLabel" text="owner_backup: " />

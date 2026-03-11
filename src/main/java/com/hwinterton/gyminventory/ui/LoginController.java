@@ -6,7 +6,7 @@
  * - reads username & password from login form
  * - calls AuthenticationService.Login
  * - if successful, stores logged in user in SessionManager
- * routes to Change Password if mustChangePassword, otherwise routes to Main
+ * - routes to Change Password if mustChangePassword, otherwise routes to Main
  * 
  * Dependencies:
  * - AuthenticationService for credential verification
@@ -35,27 +35,19 @@ public class LoginController {
     @FXML
     private void onLogin() {
 
-        // read credentials from login form
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // attempt authentication and handle result
         authService.login(username, password).ifPresentOrElse(
-
-                // successful login
                 user -> {
-                    // store authenticated user in session
                     SessionManager.setUser(user);
 
-                    // route to password change if required
                     if (user.mustChangePassword()) {
                         Router.showChangePassword();
                     } else {
-                        Router.showMain(user);
+                        Router.showMain();
                     }
                 },
-
-                // authentication failed
                 () -> messageLabel.setText("Invalid username or password.")
         );
     }

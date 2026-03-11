@@ -260,6 +260,6 @@ public class UserManagementController {
     // Method - return to main menu
     @FXML
     private void onBack() {
-        Router.showMain(com.hwinterton.gyminventory.security.SessionManager.getUser());
+        Router.showMain();
     }
 }

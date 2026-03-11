@@ -32,33 +32,26 @@ public class ChangePasswordController {
     @FXML
     private void onUpdatePassword() {
         try {
-
-            // read values entered in form
             String current = currentPasswordField.getText();
             String newPass = newPasswordField.getText();
             String confirm = confirmPasswordField.getText();
 
-            // validate minimum password length
             if (newPass == null || newPass.length() < 8) {
                 messageLabel.setText("New password must be at least 8 characters.");
                 return;
             }
 
-            // ensure confirmation matches new password
             if (!newPass.equals(confirm)) {
                 messageLabel.setText("Passwords do not match.");
                 return;
             }
 
-            // update password through service layer
             userService.changeOwnPassword(current, newPass);
 
             messageLabel.setText("Password updated.");
+            Router.showMain();
 
-            // return user to main screen after successful update
-            Router.showMain(com.hwinterton.gyminventory.security.SessionManager.getUser());
-
-        } catch (Exception ex) { // display error from service layer
+        } catch (Exception ex) {
             messageLabel.setText(ex.getMessage());
         }
     }

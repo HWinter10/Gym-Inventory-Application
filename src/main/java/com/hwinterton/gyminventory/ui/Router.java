@@ -5,7 +5,7 @@
  * Function:
  * - loads FXML file with FXMLLoader
  * - sets Scene on primary Stage
- * - provides helper methods like showLogin, showMain, showUserManagement etc. 
+ * - provides helper methods like showLogin, showMain, showUserManagement, and showFirstRunSetup
  * 
  * Dependencies:
  * - FXML resources
@@ -31,13 +31,18 @@ public final class Router {
         primaryStage.setTitle("Gym Inventory");
     }
 
+    // Method - route to first run setup screen
+    public static void showFirstRunSetup() {
+        setScene("/com/hwinterton/gyminventory/ui/views/first_run_setup.fxml", 620, 320);
+    }
+
     // Method - route to login screen
     public static void showLogin() {
         setScene("/com/hwinterton/gyminventory/ui/views/login.fxml", 520, 360);
     }
 
     // Method - route to main menu
-    public static void showMain(com.hwinterton.gyminventory.domain.User user) {
+    public static void showMain() {
         setScene("/com/hwinterton/gyminventory/ui/views/main.fxml", 760, 520);
     }
 
@@ -59,19 +64,15 @@ public final class Router {
     // Method - load FXML and apply new scene to primary stage
     private static void setScene(String fxmlPath, int width, int height) {
         try {
-
-            // load FXML layout file
             FXMLLoader loader = new FXMLLoader(Router.class.getResource(fxmlPath));
             Parent root = loader.load();
 
-            // create scene with specified dimensions
             Scene scene = new Scene(root, width, height);
 
-            // apply scene to primary application stage
             primaryStage.setScene(scene);
             primaryStage.show();
 
-        } catch (Exception e) { // wrap scene loading failures
+        } catch (Exception e) {
             throw new RuntimeException("Failed to load scene: " + fxmlPath, e);
         }
     }

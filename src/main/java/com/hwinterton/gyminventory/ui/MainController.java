@@ -24,6 +24,7 @@ import javafx.scene.control.Label;
 public class MainController {
 
     @FXML private Label welcomeLabel; // displays logged in user information
+    @FXML private Label roleLabel; // displays current user role
 
     @FXML private Button manageUsersButton; // navigates to user management screen
     @FXML private Button manageProductsButton; // navigates to product management screen
@@ -41,17 +42,23 @@ public class MainController {
             return;
         }
 
-        // display username and role in welcome label
-        welcomeLabel.setText("Logged in as: " + user.getUsername() + " (" + user.getRole() + ")");
+        // display username and role in labels
+        welcomeLabel.setText("Logged in as: " + user.getUsername());
+        roleLabel.setText("Role: " + user.getRole());
 
         // determine owner role for permission checks
         boolean isOwner = user.getRole() == Role.OWNER;
+        boolean canManageProducts = user.getRole() == Role.OWNER || user.getRole() == Role.MANAGER;
 
         // disable user management for non owners
-        if (manageUsersButton != null) manageUsersButton.setDisable(!isOwner);
+        if (manageUsersButton != null) {
+            manageUsersButton.setDisable(!isOwner);
+        }
 
-        // product management available to all roles
-        if (manageProductsButton != null) manageProductsButton.setDisable(false);
+        // disable product management for staff
+        if (manageProductsButton != null) {
+            manageProductsButton.setDisable(!canManageProducts);
+        }
     }
 
     // Method - handle user management button action
@@ -82,6 +89,11 @@ public class MainController {
         User user = SessionManager.getUser();
         if (user == null) {
             Router.showLogin();
+            return;
+        }
+
+        // restrict access to owners and managers
+        if (user.getRole() != Role.OWNER && user.getRole() != Role.MANAGER) {
             return;
         }
 

@@ -27,6 +27,7 @@ package com.hwinterton.gyminventory.service;
 
 import com.hwinterton.gyminventory.data.UserRepository;
 import com.hwinterton.gyminventory.domain.Role;
+import com.hwinterton.gyminventory.domain.User;
 import com.hwinterton.gyminventory.domain.UserSummary;
 import com.hwinterton.gyminventory.security.AuthorizationService;
 import com.hwinterton.gyminventory.security.PasswordUtil;
@@ -41,16 +42,16 @@ public class UserService {
 
     // Method - return user summaries for admin UI
     public List<UserSummary> listUsers() {
-        var current = SessionManager.getUser(); // current session user
-        AuthorizationService.require(AuthorizationService.canManageUsers(current)); // require owner permission
+        var current = requireLoggedInUser();
+        AuthorizationService.require(AuthorizationService.canManageUsers(current));
         return userRepository.listUsers();
     }
 
     // Method - create user with initial password and force password change
     public void createUserWithInitialPassword(String username, Role role, String initialPassword) {
 
-        var current = SessionManager.getUser(); // current session user
-        AuthorizationService.require(AuthorizationService.canManageUsers(current)); // require owner permission
+        var current = requireLoggedInUser();
+        AuthorizationService.require(AuthorizationService.canManageUsers(current));
 
         // validate username
         if (username == null || username.isBlank()) {
@@ -93,8 +94,8 @@ public class UserService {
     // Method - enable or disable user account
     public void setActive(long targetUserId, boolean active) {
 
-        var current = SessionManager.getUser(); // current session user
-        AuthorizationService.require(AuthorizationService.canManageUsers(current)); // require owner permission
+        var current = requireLoggedInUser();
+        AuthorizationService.require(AuthorizationService.canManageUsers(current));
 
         // prevent disabling owner accounts
         if (isOwnerAccount(targetUserId)) {
@@ -111,8 +112,8 @@ public class UserService {
     // Method - update user role
     public void changeRole(long targetUserId, Role newRole) {
 
-        var current = SessionManager.getUser(); // current session user
-        AuthorizationService.require(AuthorizationService.canManageUsers(current)); // require owner permission
+        var current = requireLoggedInUser();
+        AuthorizationService.require(AuthorizationService.canManageUsers(current));
 
         // validate role
         if (newRole == null) {
@@ -139,8 +140,8 @@ public class UserService {
     // Method - reset user password and require change at next login
     public void resetPasswordTo(long targetUserId, String newTempPassword) {
 
-        var current = SessionManager.getUser(); // current session user
-        AuthorizationService.require(AuthorizationService.canManageUsers(current)); // require owner permission
+        var current = requireLoggedInUser();
+        AuthorizationService.require(AuthorizationService.canManageUsers(current));
 
         // prevent resetting owner accounts
         if (isOwnerAccount(targetUserId)) {
@@ -169,7 +170,7 @@ public class UserService {
     // Method - change password for currently logged in user
     public void changeOwnPassword(String currentPassword, String newPassword) {
 
-        var user = SessionManager.getUser(); // current session user
+        var user = requireLoggedInUser();
 
         // read stored password hash
         String currentHash = userRepository.getPasswordHashById(user.getId());
@@ -200,5 +201,14 @@ public class UserService {
     // Method - check if target account has owner role
     private boolean isOwnerAccount(long userId) {
         return userRepository.getRoleById(userId) == Role.OWNER;
+    }
+
+    // Method - require authenticated session user
+    private User requireLoggedInUser() {
+        User user = SessionManager.getUser();
+        if (user == null) {
+            throw new IllegalStateException("No user is logged in.");
+        }
+        return user;
     }
 }

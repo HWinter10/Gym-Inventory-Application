@@ -27,11 +27,6 @@ public final class SessionManager {
 
     // Method - return current logged in user
     public static User getUser() {
-    	
-        // prevent access when session user not set
-        if (currentUser == null) {
-            throw new IllegalStateException("No user is logged in.");
-        }
         return currentUser;
     }
 
