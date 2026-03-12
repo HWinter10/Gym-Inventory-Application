@@ -1,12 +1,13 @@
 /*
  * Purpose:
- * - handles database access for product catalog records
+ * - database access for product catalog records
  * 
  * Function:
- * - inserts new product rows into the products table
- * - retrieves product records for the product management screen
- * - updates existing product records
- * - finds a product by id when needed
+ * - insert new products
+ * - list products for management screen
+ * - update existing product records
+ * - find product by id when needed
+ * - return categories and active products for sales entry
  * 
  * Dependencies:
  * - Database connection helper
@@ -26,7 +27,7 @@ import java.util.Optional;
 
 public class ProductRepository {
 
-    // Method - insert new product and return generated id
+    // Method - insert new product, return generated id
     public long insertProduct(String name, String category, int quantityOnHand, int reorderThreshold, boolean active) {
         String sql = """
                 INSERT INTO products(name, category, quantity_on_hand, reorder_threshold, active)
@@ -36,22 +37,19 @@ public class ProductRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
-            // set values for new product row
             ps.setString(1, name);
             ps.setString(2, category);
             ps.setInt(3, quantityOnHand);
             ps.setInt(4, reorderThreshold);
             ps.setInt(5, active ? 1 : 0);
 
-            // execute insert statement
             ps.executeUpdate();
 
-            // return generated product id
+            // retrieve generated product id
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getLong(1);
             }
 
-            // fail if insert succeeded but no id was returned
             throw new RuntimeException("Product insert succeeded but no generated id returned.");
 
         } catch (Exception e) { // product insert failure
@@ -73,15 +71,69 @@ public class ProductRepository {
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            // build Product object for each returned row
             while (rs.next()) {
                 products.add(buildProduct(rs));
             }
 
             return products;
 
-        } catch (Exception e) { // product list query failure
+        } catch (Exception e) { // product list failed
             throw new RuntimeException("Failed to list products", e);
+        }
+    }
+
+    // Method - return distinct active categories alphabetically
+    public List<String> listActiveCategories() {
+        String sql = """
+                SELECT DISTINCT category
+                FROM products
+                WHERE active = 1
+                ORDER BY category;
+                """;
+
+        List<String> categories = new ArrayList<>();
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                categories.add(rs.getString("category"));
+            }
+
+            return categories;
+
+        } catch (Exception e) { // category list failed
+            throw new RuntimeException("Failed to list categories", e);
+        }
+    }
+
+    // Method - return active products within a category
+    public List<Product> listActiveProductsByCategory(String category) {
+        String sql = """
+                SELECT id, name, category, quantity_on_hand, reorder_threshold, active
+                FROM products
+                WHERE active = 1 AND category = ?
+                ORDER BY name;
+                """;
+
+        List<Product> products = new ArrayList<>();
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, category);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(buildProduct(rs));
+                }
+            }
+
+            return products;
+
+        } catch (Exception e) { // product list by category failed
+            throw new RuntimeException("Failed to list products by category", e);
         }
     }
 
@@ -96,18 +148,14 @@ public class ProductRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // set target product id
             ps.setLong(1, productId);
 
             try (ResultSet rs = ps.executeQuery()) {
-                // return empty if no matching product found
                 if (!rs.next()) return Optional.empty();
-
-                // return mapped product if found
                 return Optional.of(buildProduct(rs));
             }
 
-        } catch (Exception e) { // product lookup failure
+        } catch (Exception e) { // product lookup failed
             throw new RuntimeException("Failed to find product", e);
         }
     }
@@ -123,7 +171,6 @@ public class ProductRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // set updated values for target product row
             ps.setString(1, name);
             ps.setString(2, category);
             ps.setInt(3, quantityOnHand);
@@ -131,17 +178,15 @@ public class ProductRepository {
             ps.setInt(5, active ? 1 : 0);
             ps.setLong(6, productId);
 
-            // execute update statement
             ps.executeUpdate();
 
-        } catch (Exception e) { // product update failure
+        } catch (Exception e) { // product update failed
             throw new RuntimeException("Failed to update product", e);
         }
     }
 
     // Method - build Product object from query result row
     private Product buildProduct(ResultSet rs) throws Exception {
-        // read product fields from current result row
         long id = rs.getLong("id");
         String name = rs.getString("name");
         String category = rs.getString("category");
@@ -149,7 +194,6 @@ public class ProductRepository {
         int reorderThreshold = rs.getInt("reorder_threshold");
         boolean active = rs.getInt("active") == 1;
 
-        // return mapped domain product
         return new Product(id, name, category, quantityOnHand, reorderThreshold, active);
     }
 }

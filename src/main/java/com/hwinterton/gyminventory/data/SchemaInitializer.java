@@ -1,19 +1,19 @@
 /*
  * Purpose:
- * - creates required database tables and seeds initial system accounts on first run
+ * - creates database tables and seeds initial required data
  * 
  * Function:
- * - creates users, audit_log, and products tables if they do not already exist
- * - checks whether any users already exist in the database
- * - on first run only, generates temporary passwords for owner and owner_backup accounts
- * - stores only hashed passwords in the database
- * - saves generated temporary passwords in StartupContext so they can be shown once on the first run setup screen
+ * - creates required tables if missing
+ * - detects first run by checking whether users already exist
+ * - generates temporary passwords for owner and backup owner accounts
+ * - stores hashed passwords only
+ * - records first run credentials in StartupContext for display
  * 
  * Dependencies:
  * - Database connection helper
  * - PasswordUtil for password hashing
  * - CredentialGenerator for temporary password generation
- * - StartupContext for temporarily storing first run credentials for display
+ * - StartupContext for first run credential display
  */
 
 package com.hwinterton.gyminventory.data;
@@ -42,7 +42,7 @@ public final class SchemaInitializer {
 
     // Method - create required database tables
     private static void createTables() {
-    	// users table: stores login credentials, role, account status, and forced password change flag
+    	// users table
         String usersTable = """
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +54,7 @@ public final class SchemaInitializer {
                 );
                 """;
         
-        // audit_log table: records traceable security and administrative actions
+        // audit log table
         String auditTable = """
                 CREATE TABLE IF NOT EXISTS audit_log (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,8 +64,7 @@ public final class SchemaInitializer {
                     details TEXT
                 );
                 """;
-
-        // products table: stores inventory catalog items and reorder-related values
+        // products table
         String productsTable = """
                 CREATE TABLE IF NOT EXISTS products (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,18 +75,29 @@ public final class SchemaInitializer {
                     active INTEGER NOT NULL DEFAULT 1
                 );
                 """;
+        // sales transaction table
+        String salesTable = """
+                CREATE TABLE IF NOT EXISTS sales (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    quantity_sold INTEGER NOT NULL,
+                    sold_by_user_id INTEGER NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+                """;
 
         try (Connection conn = Database.getConnection()) {
             conn.createStatement().execute(usersTable);
             conn.createStatement().execute(auditTable);
             conn.createStatement().execute(productsTable);
+            conn.createStatement().execute(salesTable);
 
-        } catch (Exception e) { // table creation failure
+        } catch (Exception e) { // table creation fail
             throw new RuntimeException("Failed to create tables", e);
         }
     }
 
-    // Method - return true if any user already exists
+    // Method - return true if any users exist
     private static boolean hasAnyUsers() {
         String sql = "SELECT COUNT(*) FROM users;";
 
@@ -100,28 +110,25 @@ public final class SchemaInitializer {
             }
             return false;
 
-        } catch (Exception e) { // user existence check failure
+        } catch (Exception e) { // user check failed
             throw new RuntimeException("Failed to check existing users", e);
         }
     }
 
     // Method - create first run owner accounts with generated temporary passwords
     private static void seedInitialOwnerAccounts() {
-    	// generate temporary plain text passwords for first run display
         String ownerPassword = CredentialGenerator.generatePassword();
         String backupPassword = CredentialGenerator.generatePassword();
 
-        // insert fixed recovery usernames with generated temporary passwords
         insertInitialUser("owner", ownerPassword, "OWNER", true, true);
         insertInitialUser("owner_backup", backupPassword, "OWNER", true, true);
 
-        // store temporary passwords in memory so first run setup screen can display them once
         StartupContext.setFirstRunCredentials(ownerPassword, backupPassword);
     }
 
-    // Method - insert initial user with hashed password
+    // Method - insert initial user (password hashed)
     private static void insertInitialUser(String username, String plainPassword, String role, boolean active, boolean mustChangePassword) {
-        String insertSql = """
+    	String insertSql = """
                 INSERT INTO users(username, password_hash, role, active, must_change_password)
                 VALUES(?, ?, ?, ?, ?);
                 """;
@@ -137,7 +144,7 @@ public final class SchemaInitializer {
 
             insert.executeUpdate();
 
-        } catch (Exception e) { // initial user insert failure
+        } catch (Exception e) { // user insert failed
             throw new RuntimeException("Failed to insert initial user: " + username, e);
         }
     }

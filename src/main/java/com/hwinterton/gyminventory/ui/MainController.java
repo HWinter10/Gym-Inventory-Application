@@ -5,7 +5,7 @@
  * Function:
  * - displays logged in user info
  * - enables or disables buttons based on role
- * - routes to screens like User Management
+ * - route to user management, product management, and sales entry screens
  * 
  * Dependencies:
  * - SessionManager to get current user
@@ -23,92 +23,95 @@ import javafx.scene.control.Label;
 
 public class MainController {
 
-    @FXML private Label welcomeLabel; // displays logged in user information
-    @FXML private Label roleLabel; // displays current user role
+	// labels
+    @FXML private Label welcomeLabel;
+    @FXML private Label roleLabel;
 
-    @FXML private Button manageUsersButton; // navigates to user management screen
-    @FXML private Button manageProductsButton; // navigates to product management screen
+    // buttons
+    @FXML private Button manageUsersButton;
+    @FXML private Button manageProductsButton;
+    @FXML private Button salesEntryButton;
 
     // Method - initialize main menu after FXML load
     @FXML
     private void initialize() {
 
-        // get current logged in user
         User user = SessionManager.getUser();
 
-        // redirect to login if session missing
         if (user == null) {
             Router.showLogin();
             return;
         }
 
-        // display username and role in labels
+        // display current user information
         welcomeLabel.setText("Logged in as: " + user.getUsername());
         roleLabel.setText("Role: " + user.getRole());
 
-        // determine owner role for permission checks
         boolean isOwner = user.getRole() == Role.OWNER;
         boolean canManageProducts = user.getRole() == Role.OWNER || user.getRole() == Role.MANAGER;
 
-        // disable user management for non owners
+        // enable or disable menu options based on role
         if (manageUsersButton != null) {
             manageUsersButton.setDisable(!isOwner);
         }
 
-        // disable product management for staff
         if (manageProductsButton != null) {
             manageProductsButton.setDisable(!canManageProducts);
         }
+
+        if (salesEntryButton != null) {
+            salesEntryButton.setDisable(false);
+        }
     }
 
-    // Method - handle user management button action
+    // Method - open user management screen (owner only)
     @FXML
     private void onManageUsers() {
-
-        // confirm active session
         User user = SessionManager.getUser();
         if (user == null) {
             Router.showLogin();
             return;
         }
 
-        // restrict access to owner role
         if (user.getRole() != Role.OWNER) {
             return;
         }
 
-        // navigate to user management screen
         Router.showUserManagement();
     }
 
-    // Method - handle product management button action
+    // Method - open product management screen
     @FXML
     private void onManageProducts() {
-
-        // confirm active session
         User user = SessionManager.getUser();
         if (user == null) {
             Router.showLogin();
             return;
         }
 
-        // restrict access to owners and managers
         if (user.getRole() != Role.OWNER && user.getRole() != Role.MANAGER) {
             return;
         }
 
-        // navigate to product management screen
         Router.showProductManagement();
     }
 
-    // Method - handle logout action
+    // Method - open sales entry screen
+    @FXML
+    private void onSalesEntry() {
+        User user = SessionManager.getUser();
+        if (user == null) {
+            Router.showLogin();
+            return;
+        }
+
+        Router.showSalesEntry();
+    }
+
+    // Method - logout current user, return to login screen
     @FXML
     private void onLogout() {
-
-        // clear session user
         SessionManager.clear();
-
-        // return to login screen
         Router.showLogin();
     }
 }

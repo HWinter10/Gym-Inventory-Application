@@ -4,7 +4,7 @@
  * 
  * Function:
  * - reads username & password from login form
- * - calls AuthenticationService.Login
+ * - calls AuthenticationService
  * - if successful, stores logged in user in SessionManager
  * - routes to Change Password if mustChangePassword, otherwise routes to Main
  * 
