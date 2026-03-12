@@ -30,12 +30,12 @@ This project is being developed as a capstone project using a layered architectu
 
 ### Application Preview:
 #### Role Based Access Control (Restricted User View)
-Buttons that require certain permissions are disabled for lower level users.
+Buttons that require certain permissions are disabled for lower level users. <br>
 <img height="350" alt="role based access control" src="https://github.com/user-attachments/assets/52ff91e7-ea70-428d-9231-62b4c05b0d07" />
 
 
 #### Product Management
-Administrative interface for creating and maintaining product catalog entries.
+Administrative interface for creating and maintaining product catalog entries. <br>
 <img height="350" alt="product management" src="https://github.com/user-attachments/assets/dbd7f39e-cca3-46c9-92ce-088458c8b5d2" />
 
 
@@ -45,16 +45,16 @@ Simplified interface used by staff to record product sales. <br>
 
 
 #### User Management
-Interface used by administrators to manage system users and permissions.
+Interface used by administrators to manage system users and permissions. <br>
 <img height="350" alt="user management" src="https://github.com/user-attachments/assets/ebedd767-7562-4f26-a62d-fb57a4f894f3" />
 
 
 #### Database Tables (SQLite)
-Example showing created database tables.
+Example showing created database tables. <br>
 <img height="350" alt="database tables" src="https://github.com/user-attachments/assets/fc362a9f-fa6c-435e-9ad1-e504dd186eca" />
 
 
 #### Audit Logging
-Example showing audit log entries recording system actions.
+Example showing audit log entries recording system actions. <br>
 <img height="350" alt="database logging" src="https://github.com/user-attachments/assets/2b81221b-3166-4778-be6c-5efdd0827896" />
 
