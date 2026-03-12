@@ -40,7 +40,7 @@ Administrative interface for creating and maintaining product catalog entries.
 
 
 #### Sales Entry Screen
-Simplified interface used by staff to record product sales.
+Simplified interface used by staff to record product sales. <br>
 <img height="350" alt="sales entry" src="https://github.com/user-attachments/assets/3e19d5af-5766-4770-8304-7438135a3de0" />
 
 
