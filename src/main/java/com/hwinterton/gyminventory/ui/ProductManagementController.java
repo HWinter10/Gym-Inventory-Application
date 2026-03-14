@@ -1,19 +1,17 @@
 /*
  * Purpose:
- * - controls the product management screen for owners and managers
+ * - owner and manager UI for managing product catalog
  * 
  * Function:
- * - displays products in a TableView
- * - creates new product records from form input
- * - updates the selected product
- * - loads selected product values back into the form
- * - refreshes product list from the database
- * - returns user to the main menu
+ * - displays product list in TableView
+ * - creates new products
+ * - updates selected products
+ * - reloads product list from database
+ * - returns to main menu
  * 
  * Dependencies:
  * - ProductService for product business logic
  * - Router for navigation
- * - Product domain object
  */
 
 package com.hwinterton.gyminventory.ui;
@@ -27,11 +25,12 @@ import javafx.scene.control.*;
 
 public class ProductManagementController {
 
-    @FXML private TextField nameField; // product name input
+    @FXML private TextField nameField; // product name 
     @FXML private TextField categoryField; // product category input
-    @FXML private TextField quantityField; // quantity on hand input
+    @FXML private TextField quantityField; // starting quantity input (new products only)
     @FXML private TextField reorderThresholdField; // reorder threshold input
     @FXML private CheckBox activeCheckBox; // product active flag
+    @FXML private Label currentQuantityLabel; // displays existing quantity on hand for selected product
 
     @FXML private TableView<Product> productTable; // displays products
     @FXML private TableColumn<Product, Long> colId; // product id column
@@ -49,10 +48,8 @@ public class ProductManagementController {
     // Method - initialize product management screen
     @FXML
     private void initialize() {
-        // bind observable product list to table
         productTable.setItems(productRows);
 
-        // map table columns to Product values
         colId.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getId()));
         colName.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getName()));
         colCategory.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getCategory()));
@@ -60,17 +57,15 @@ public class ProductManagementController {
         colReorderThreshold.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getReorderThreshold()));
         colActive.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().isActive()));
 
-        // resize columns to fill available table width
         productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // load selected row values into form for editing
         productTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 loadSelectedProductIntoForm(newSelection);
             }
         });
 
-        // load initial product list
+        clearForm();
         refresh();
     }
 
@@ -78,30 +73,26 @@ public class ProductManagementController {
     @FXML
     private void onCreateProduct() {
         try {
-            // read product values from form
             String name = nameField.getText();
             String category = categoryField.getText();
-            int quantity = parseInt(quantityField.getText(), "Quantity must be a valid whole number.");
+            int quantity = parseInt(quantityField.getText(), "Starting quantity must be a valid whole number.");
             int reorderThreshold = parseInt(reorderThresholdField.getText(), "Reorder threshold must be a valid whole number.");
             boolean active = activeCheckBox.isSelected();
 
-            // create product through service layer
             productService.createProduct(name, category, quantity, reorderThreshold, active);
 
-            // show success message, clear form, and reload table
             messageLabel.setText("Product created.");
             clearForm();
             refresh();
 
-        } catch (Exception ex) { // create product failure
+        } catch (Exception ex) { // service or validation error
             messageLabel.setText(ex.getMessage());
         }
     }
 
-    // Method - update selected product from form input
+    // Method - update selected product catalog details without changing quantity on hand
     @FXML
     private void onUpdateProduct() {
-        // require selected product row before updating
         Product selected = productTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             messageLabel.setText("Select a product first.");
@@ -109,22 +100,32 @@ public class ProductManagementController {
         }
 
         try {
-            // read updated product values from form
             String name = nameField.getText();
             String category = categoryField.getText();
-            int quantity = parseInt(quantityField.getText(), "Quantity must be a valid whole number.");
             int reorderThreshold = parseInt(reorderThresholdField.getText(), "Reorder threshold must be a valid whole number.");
             boolean active = activeCheckBox.isSelected();
 
-            // update selected product through service layer
-            productService.updateProduct(selected.getId(), name, category, quantity, reorderThreshold, active);
+            productService.updateProduct(selected.getId(), name, category, reorderThreshold, active);
 
-            // show success message, clear form, and reload table
-            messageLabel.setText("Product updated.");
-            clearForm();
+            messageLabel.setText("Product updated. Quantity on hand is managed through Sales Entry and Inventory Adjustment.");
             refresh();
 
-        } catch (Exception ex) { // update product failure
+            Product refreshedSelected = null;
+            for (Product product : productRows) {
+                if (product.getId() == selected.getId()) {
+                    refreshedSelected = product;
+                    break;
+                }
+            }
+
+            if (refreshedSelected != null) {
+                productTable.getSelectionModel().select(refreshedSelected);
+                loadSelectedProductIntoForm(refreshedSelected);
+            } else {
+                clearForm();
+            }
+
+        } catch (Exception ex) { // service or validation error
             messageLabel.setText(ex.getMessage());
         }
     }
@@ -134,6 +135,13 @@ public class ProductManagementController {
     private void onRefresh() {
         refresh();
         messageLabel.setText("Product list refreshed.");
+    }
+
+    // Method - clear form for new product entry
+    @FXML
+    private void onClearForm() {
+        clearForm();
+        messageLabel.setText("");
     }
 
     // Method - return to main menu
@@ -146,9 +154,12 @@ public class ProductManagementController {
     private void loadSelectedProductIntoForm(Product product) {
         nameField.setText(product.getName());
         categoryField.setText(product.getCategory());
-        quantityField.setText(String.valueOf(product.getQuantityOnHand()));
-        reorderThresholdField.setText(String.valueOf(product.getReorderThreshold()));
+        reorderThresholdField.setText(Integer.toString(product.getReorderThreshold()));
         activeCheckBox.setSelected(product.isActive());
+
+        currentQuantityLabel.setText("Current quantity on hand: " + product.getQuantityOnHand());
+        quantityField.clear();
+        quantityField.setPromptText("Starting quantity used only when creating a new product");
     }
 
     // Method - refresh product table rows
@@ -156,13 +167,15 @@ public class ProductManagementController {
         productRows.setAll(productService.listProducts());
     }
 
-    // Method - clear form fields after create or update
+    // Method - clear form fields after create or when preparing new entry
     private void clearForm() {
         nameField.clear();
         categoryField.clear();
         quantityField.clear();
         reorderThresholdField.clear();
         activeCheckBox.setSelected(true);
+        currentQuantityLabel.setText("Current quantity on hand: n/a");
+        quantityField.setPromptText("Starting quantity for new product");
         productTable.getSelectionModel().clearSelection();
     }
 
@@ -170,7 +183,7 @@ public class ProductManagementController {
     private int parseInt(String value, String errorMessage) {
         try {
             return Integer.parseInt(value == null ? "" : value.trim());
-        } catch (Exception e) { // invalid integer input
+        } catch (Exception e) { // invalid numeric input
             throw new IllegalArgumentException(errorMessage);
         }
     }

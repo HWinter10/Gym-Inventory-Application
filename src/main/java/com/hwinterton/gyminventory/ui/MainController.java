@@ -31,6 +31,7 @@ public class MainController {
     @FXML private Button manageUsersButton;
     @FXML private Button manageProductsButton;
     @FXML private Button salesEntryButton;
+    @FXML private Button inventoryAdjustmentButton;
 
     // Method - initialize main menu after FXML load
     @FXML
@@ -61,6 +62,10 @@ public class MainController {
 
         if (salesEntryButton != null) {
             salesEntryButton.setDisable(false);
+        }
+
+        if (inventoryAdjustmentButton != null) {
+            inventoryAdjustmentButton.setDisable(false);
         }
     }
 
@@ -106,6 +111,18 @@ public class MainController {
         }
 
         Router.showSalesEntry();
+    }
+
+    // Method - open inventory adjustment screen
+    @FXML
+    private void onInventoryAdjustment() {
+        User user = SessionManager.getUser();
+        if (user == null) {
+            Router.showLogin();
+            return;
+        }
+
+        Router.showInventoryAdjustment();
     }
 
     // Method - logout current user, return to login screen

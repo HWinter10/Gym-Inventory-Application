@@ -1,19 +1,19 @@
 /*
  * Purpose:
- * - applies business rules for product catalog management
+ * - business logic for product catalog management
  * 
  * Function:
- * - validates product input before saving
- * - restricts product management actions to owners and managers
- * - creates and updates product records
- * - returns product lists for the UI
+ * - validates product input
+ * - restricts product management to owners and managers
+ * - creates and updates products
+ * - returns product list for UI
  * - records audit log entries for product changes
  * 
  * Dependencies:
  * - ProductRepository for persistence
  * - AuthorizationService and SessionManager for permission checks
- * - AuditService for logging product changes
- * - Product and User domain objects
+ * - AuditService for logging sensitive actions
+ * - Product domain object
  */
 
 package com.hwinterton.gyminventory.service;
@@ -43,12 +43,10 @@ public class ProductService {
         User current = requireLoggedInUser();
         AuthorizationService.require(AuthorizationService.canManageProducts(current));
 
-        // validate and normalize product values
         String cleanedName = validateName(name);
         String cleanedCategory = validateCategory(category);
-        validateNumericFields(quantityOnHand, reorderThreshold);
+        validateCreateFields(quantityOnHand, reorderThreshold);
 
-        // insert new product record and return generated id
         long newProductId = productRepository.insertProduct(
                 cleanedName,
                 cleanedCategory,
@@ -57,7 +55,6 @@ public class ProductService {
                 active
         );
 
-        // record product creation event in audit log
         auditService.log(current.getId(), "CREATE_PRODUCT",
                 "target_product_id=" + newProductId +
                 " name=" + cleanedName +
@@ -67,37 +64,31 @@ public class ProductService {
                 " active=" + active);
     }
 
-    // Method - update product after validation and authorization
-    public void updateProduct(long productId, String name, String category, int quantityOnHand, int reorderThreshold, boolean active) {
+    // Method - update product catalog fields without changing quantity on hand
+    public void updateProduct(long productId, String name, String category, int reorderThreshold, boolean active) {
         User current = requireLoggedInUser();
         AuthorizationService.require(AuthorizationService.canManageProducts(current));
 
-        // require valid product id
         if (productId <= 0) {
             throw new IllegalArgumentException("Valid product id is required.");
         }
 
-        // validate and normalize updated product values
         String cleanedName = validateName(name);
         String cleanedCategory = validateCategory(category);
-        validateNumericFields(quantityOnHand, reorderThreshold);
+        validateUpdateFields(reorderThreshold);
 
-        // update target product record
         productRepository.updateProduct(
                 productId,
                 cleanedName,
                 cleanedCategory,
-                quantityOnHand,
                 reorderThreshold,
                 active
         );
 
-        // record product update event in audit log
         auditService.log(current.getId(), "UPDATE_PRODUCT",
                 "target_product_id=" + productId +
                 " name=" + cleanedName +
                 " category=" + cleanedCategory +
-                " quantity_on_hand=" + quantityOnHand +
                 " reorder_threshold=" + reorderThreshold +
                 " active=" + active);
     }
@@ -120,14 +111,18 @@ public class ProductService {
         return cleaned;
     }
 
-    // Method - validate numeric product fields
-    private void validateNumericFields(int quantityOnHand, int reorderThreshold) {
-        // prevent negative inventory values
+    // Method - validate numeric fields for product creation
+    private void validateCreateFields(int quantityOnHand, int reorderThreshold) {
         if (quantityOnHand < 0) {
-            throw new IllegalArgumentException("Quantity on hand cannot be negative.");
+            throw new IllegalArgumentException("Starting quantity cannot be negative.");
         }
+        if (reorderThreshold < 0) {
+            throw new IllegalArgumentException("Reorder threshold cannot be negative.");
+        }
+    }
 
-        // prevent negative reorder threshold values
+    // Method - validate numeric fields for product update
+    private void validateUpdateFields(int reorderThreshold) {
         if (reorderThreshold < 0) {
             throw new IllegalArgumentException("Reorder threshold cannot be negative.");
         }
@@ -136,12 +131,9 @@ public class ProductService {
     // Method - require authenticated session user
     private User requireLoggedInUser() {
         User user = SessionManager.getUser();
-
-        // fail when no user is logged in
         if (user == null) {
             throw new IllegalStateException("No user is logged in.");
         }
-
         return user;
     }
 }

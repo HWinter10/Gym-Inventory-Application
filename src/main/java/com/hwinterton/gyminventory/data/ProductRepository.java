@@ -27,7 +27,7 @@ import java.util.Optional;
 
 public class ProductRepository {
 
-    // Method - insert new product, return generated id
+    // Method - insert new product and return generated id
     public long insertProduct(String name, String category, int quantityOnHand, int reorderThreshold, boolean active) {
         String sql = """
                 INSERT INTO products(name, category, quantity_on_hand, reorder_threshold, active)
@@ -45,14 +45,13 @@ public class ProductRepository {
 
             ps.executeUpdate();
 
-            // retrieve generated product id
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getLong(1);
             }
 
             throw new RuntimeException("Product insert succeeded but no generated id returned.");
 
-        } catch (Exception e) { // product insert failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to insert product", e);
         }
     }
@@ -77,12 +76,12 @@ public class ProductRepository {
 
             return products;
 
-        } catch (Exception e) { // product list failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to list products", e);
         }
     }
 
-    // Method - return distinct active categories alphabetically
+    // Method - return all distinct active categories ordered alphabetically
     public List<String> listActiveCategories() {
         String sql = """
                 SELECT DISTINCT category
@@ -103,12 +102,12 @@ public class ProductRepository {
 
             return categories;
 
-        } catch (Exception e) { // category list failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to list categories", e);
         }
     }
 
-    // Method - return active products within a category
+    // Method - return active products in category ordered alphabetically
     public List<Product> listActiveProductsByCategory(String category) {
         String sql = """
                 SELECT id, name, category, quantity_on_hand, reorder_threshold, active
@@ -132,7 +131,7 @@ public class ProductRepository {
 
             return products;
 
-        } catch (Exception e) { // product list by category failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to list products by category", e);
         }
     }
@@ -155,16 +154,16 @@ public class ProductRepository {
                 return Optional.of(buildProduct(rs));
             }
 
-        } catch (Exception e) { // product lookup failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to find product", e);
         }
     }
 
-    // Method - update existing product record
-    public void updateProduct(long productId, String name, String category, int quantityOnHand, int reorderThreshold, boolean active) {
+    // Method - update product catalog details without changing quantity on hand
+    public void updateProduct(long productId, String name, String category, int reorderThreshold, boolean active) {
         String sql = """
                 UPDATE products
-                SET name = ?, category = ?, quantity_on_hand = ?, reorder_threshold = ?, active = ?
+                SET name = ?, category = ?, reorder_threshold = ?, active = ?
                 WHERE id = ?;
                 """;
 
@@ -173,14 +172,13 @@ public class ProductRepository {
 
             ps.setString(1, name);
             ps.setString(2, category);
-            ps.setInt(3, quantityOnHand);
-            ps.setInt(4, reorderThreshold);
-            ps.setInt(5, active ? 1 : 0);
-            ps.setLong(6, productId);
+            ps.setInt(3, reorderThreshold);
+            ps.setInt(4, active ? 1 : 0);
+            ps.setLong(5, productId);
 
             ps.executeUpdate();
 
-        } catch (Exception e) { // product update failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to update product", e);
         }
     }

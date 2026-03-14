@@ -15,9 +15,10 @@
       spacing="10"
       alignment="CENTER"
       prefWidth="900"
-      prefHeight="600">
+      prefHeight="620">
 
     <Label text="Product Management" style="-fx-font-size: 18px;" />
+    <Label text="Use this screen for product catalog setup. Use Inventory Adjustment and Sales Entry to change stock levels." wrapText="true" />
 
     <HBox spacing="10" alignment="CENTER">
         <TextField fx:id="nameField" promptText="Product name" />
@@ -25,14 +26,17 @@
     </HBox>
 
     <HBox spacing="10" alignment="CENTER">
-        <TextField fx:id="quantityField" promptText="Quantity on hand" />
+        <TextField fx:id="quantityField" promptText="Starting quantity for new product" />
         <TextField fx:id="reorderThresholdField" promptText="Reorder threshold" />
         <CheckBox fx:id="activeCheckBox" text="Active" selected="true" />
     </HBox>
 
+    <Label fx:id="currentQuantityLabel" text="Current quantity on hand: n/a" />
+
     <HBox spacing="10" alignment="CENTER">
         <Button text="Create Product" onAction="#onCreateProduct" />
         <Button text="Update Selected Product" onAction="#onUpdateProduct" />
+        <Button text="Clear Form" onAction="#onClearForm" />
         <Button text="Refresh" onAction="#onRefresh" />
         <Button text="Back" onAction="#onBack" />
     </HBox>

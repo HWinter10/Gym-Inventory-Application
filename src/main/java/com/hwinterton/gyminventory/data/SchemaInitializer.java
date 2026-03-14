@@ -64,6 +64,7 @@ public final class SchemaInitializer {
                     details TEXT
                 );
                 """;
+        
         // products table
         String productsTable = """
                 CREATE TABLE IF NOT EXISTS products (
@@ -75,6 +76,7 @@ public final class SchemaInitializer {
                     active INTEGER NOT NULL DEFAULT 1
                 );
                 """;
+        
         // sales transaction table
         String salesTable = """
                 CREATE TABLE IF NOT EXISTS sales (
@@ -85,12 +87,26 @@ public final class SchemaInitializer {
                     created_at TEXT NOT NULL DEFAULT (datetime('now'))
                 );
                 """;
+        
+        // inventory adjustments table
+        String adjustmentsTable = """
+                CREATE TABLE IF NOT EXISTS inventory_adjustments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    quantity_change INTEGER NOT NULL,
+                    reason_code TEXT NOT NULL,
+                    notes TEXT,
+                    adjusted_by_user_id INTEGER NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+                """;
 
         try (Connection conn = Database.getConnection()) {
             conn.createStatement().execute(usersTable);
             conn.createStatement().execute(auditTable);
             conn.createStatement().execute(productsTable);
             conn.createStatement().execute(salesTable);
+            conn.createStatement().execute(adjustmentsTable);
 
         } catch (Exception e) { // table creation fail
             throw new RuntimeException("Failed to create tables", e);

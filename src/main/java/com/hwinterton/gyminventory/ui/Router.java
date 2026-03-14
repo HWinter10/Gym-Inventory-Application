@@ -61,6 +61,11 @@ public final class Router {
         setScene("/com/hwinterton/gyminventory/ui/views/sales_entry.fxml", 700, 420);
     }
 
+    // Method - route to inventory adjustment screen
+    public static void showInventoryAdjustment() {
+        setScene("/com/hwinterton/gyminventory/ui/views/inventory_adjustment.fxml", 760, 520);
+    }
+
     // Method - route to forced password change screen
     public static void showChangePassword() {
         setScene("/com/hwinterton/gyminventory/ui/views/change_password.fxml", 520, 360);
