@@ -45,7 +45,7 @@ public class ProductService {
 
         String cleanedName = validateName(name);
         String cleanedCategory = validateCategory(category);
-        validateCreateFields(quantityOnHand, reorderThreshold);
+        validateNumericFields(quantityOnHand, reorderThreshold);
 
         long newProductId = productRepository.insertProduct(
                 cleanedName,
@@ -64,8 +64,8 @@ public class ProductService {
                 " active=" + active);
     }
 
-    // Method - update product catalog fields without changing quantity on hand
-    public void updateProduct(long productId, String name, String category, int reorderThreshold, boolean active) {
+    // Method - update product after validation and authorization
+    public void updateProduct(long productId, String name, String category, int quantityOnHand, int reorderThreshold, boolean active) {
         User current = requireLoggedInUser();
         AuthorizationService.require(AuthorizationService.canManageProducts(current));
 
@@ -75,12 +75,13 @@ public class ProductService {
 
         String cleanedName = validateName(name);
         String cleanedCategory = validateCategory(category);
-        validateUpdateFields(reorderThreshold);
+        validateNumericFields(quantityOnHand, reorderThreshold);
 
         productRepository.updateProduct(
                 productId,
                 cleanedName,
                 cleanedCategory,
+                quantityOnHand,
                 reorderThreshold,
                 active
         );
@@ -89,6 +90,7 @@ public class ProductService {
                 "target_product_id=" + productId +
                 " name=" + cleanedName +
                 " category=" + cleanedCategory +
+                " quantity_on_hand=" + quantityOnHand +
                 " reorder_threshold=" + reorderThreshold +
                 " active=" + active);
     }
@@ -111,18 +113,11 @@ public class ProductService {
         return cleaned;
     }
 
-    // Method - validate numeric fields for product creation
-    private void validateCreateFields(int quantityOnHand, int reorderThreshold) {
+    // Method - validate numeric product fields
+    private void validateNumericFields(int quantityOnHand, int reorderThreshold) {
         if (quantityOnHand < 0) {
-            throw new IllegalArgumentException("Starting quantity cannot be negative.");
+            throw new IllegalArgumentException("Quantity on hand cannot be negative.");
         }
-        if (reorderThreshold < 0) {
-            throw new IllegalArgumentException("Reorder threshold cannot be negative.");
-        }
-    }
-
-    // Method - validate numeric fields for product update
-    private void validateUpdateFields(int reorderThreshold) {
         if (reorderThreshold < 0) {
             throw new IllegalArgumentException("Reorder threshold cannot be negative.");
         }

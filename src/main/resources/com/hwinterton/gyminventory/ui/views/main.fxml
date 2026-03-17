@@ -10,13 +10,14 @@
       spacing="15"
       alignment="CENTER"
       prefWidth="500"
-      prefHeight="360">
+      prefHeight="390">
 
     <Label fx:id="welcomeLabel" text="Welcome" />
     <Label fx:id="roleLabel" text="Role:" />
 
     <Button fx:id="salesEntryButton" text="Sales Entry" onAction="#onSalesEntry"/>
     <Button fx:id="inventoryAdjustmentButton" text="Inventory Adjustment" onAction="#onInventoryAdjustment"/>
+    <Button fx:id="reorderAlertsButton" text="Reorder Alerts" onAction="#onReorderAlerts"/>
     <Button fx:id="manageProductsButton" text="Manage Products" onAction="#onManageProducts"/>
     <Button fx:id="manageUsersButton" text="Manage Users" onAction="#onManageUsers"/>
     <Button text="Logout" onAction="#onLogout"/>

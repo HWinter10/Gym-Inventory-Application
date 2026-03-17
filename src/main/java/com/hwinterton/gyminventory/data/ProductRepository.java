@@ -8,6 +8,7 @@
  * - update existing product records
  * - find product by id when needed
  * - return categories and active products for sales entry
+ * - return products that need reorder attention
  * 
  * Dependencies:
  * - Database connection helper
@@ -136,6 +137,32 @@ public class ProductRepository {
         }
     }
 
+    // Method - return active products at or below reorder threshold
+    public List<Product> listProductsNeedingReorder() {
+        String sql = """
+                SELECT id, name, category, quantity_on_hand, reorder_threshold, active
+                FROM products
+                WHERE active = 1 AND quantity_on_hand <= reorder_threshold
+                ORDER BY category, name;
+                """;
+
+        List<Product> products = new ArrayList<>();
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                products.add(buildProduct(rs));
+            }
+
+            return products;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to list products needing reorder", e);
+        }
+    }
+
     // Method - return product for specific id if found
     public Optional<Product> findById(long productId) {
         String sql = """
@@ -159,11 +186,11 @@ public class ProductRepository {
         }
     }
 
-    // Method - update product catalog details without changing quantity on hand
-    public void updateProduct(long productId, String name, String category, int reorderThreshold, boolean active) {
+    // Method - update existing product record
+    public void updateProduct(long productId, String name, String category, int quantityOnHand, int reorderThreshold, boolean active) {
         String sql = """
                 UPDATE products
-                SET name = ?, category = ?, reorder_threshold = ?, active = ?
+                SET name = ?, category = ?, quantity_on_hand = ?, reorder_threshold = ?, active = ?
                 WHERE id = ?;
                 """;
 
@@ -172,9 +199,10 @@ public class ProductRepository {
 
             ps.setString(1, name);
             ps.setString(2, category);
-            ps.setInt(3, reorderThreshold);
-            ps.setInt(4, active ? 1 : 0);
-            ps.setLong(5, productId);
+            ps.setInt(3, quantityOnHand);
+            ps.setInt(4, reorderThreshold);
+            ps.setInt(5, active ? 1 : 0);
+            ps.setLong(6, productId);
 
             ps.executeUpdate();
 

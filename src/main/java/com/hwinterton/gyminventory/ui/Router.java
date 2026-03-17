@@ -5,7 +5,7 @@
  * Function:
  * - loads FXML file with FXMLLoader
  * - sets Scene on primary Stage
- * - provides helper methods like showLogin, showMain, showUserManagement, showProductManagement, showSalesEntry, showChangePassword, and showFirstRunSetup
+ * - provides helper methods like showLogin, showMain, showUserManagement, showProductManagement, showSalesEntry, showInventoryAdjustment, showReorderAlerts, and showFirstRunSetup
  * 
  * Dependencies:
  * - FXML resources
@@ -43,7 +43,7 @@ public final class Router {
 
     // Method - route to main menu
     public static void showMain() {
-        setScene("/com/hwinterton/gyminventory/ui/views/main.fxml", 760, 520);
+        setScene("/com/hwinterton/gyminventory/ui/views/main.fxml", 760, 600);
     }
 
     // Method - route to user management screen
@@ -66,6 +66,11 @@ public final class Router {
         setScene("/com/hwinterton/gyminventory/ui/views/inventory_adjustment.fxml", 760, 520);
     }
 
+    // Method - route to reorder alerts screen
+    public static void showReorderAlerts() {
+        setScene("/com/hwinterton/gyminventory/ui/views/reorder_alerts.fxml", 980, 560);
+    }
+
     // Method - route to forced password change screen
     public static void showChangePassword() {
         setScene("/com/hwinterton/gyminventory/ui/views/change_password.fxml", 520, 360);
@@ -82,7 +87,7 @@ public final class Router {
             primaryStage.setScene(scene);
             primaryStage.show();
 
-        } catch (Exception e) { // scene load failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to load scene: " + fxmlPath, e);
         }
     }
