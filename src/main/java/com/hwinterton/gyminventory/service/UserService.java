@@ -6,7 +6,7 @@
  * owner actions:
  * - return summary list for UI
  * - creates user, hashes password, forces new password on first login
- * - updates role for non owner accounts
+ * - updates username and role for non owner accounts
  * - disables or enables non owner accounts
  * - resets passwords and forces change next login
  * 
@@ -27,7 +27,6 @@ package com.hwinterton.gyminventory.service;
 
 import com.hwinterton.gyminventory.data.UserRepository;
 import com.hwinterton.gyminventory.domain.Role;
-import com.hwinterton.gyminventory.domain.User;
 import com.hwinterton.gyminventory.domain.UserSummary;
 import com.hwinterton.gyminventory.security.AuthorizationService;
 import com.hwinterton.gyminventory.security.PasswordUtil;
@@ -42,7 +41,7 @@ public class UserService {
 
     // Method - return user summaries for admin UI
     public List<UserSummary> listUsers() {
-        var current = requireLoggedInUser();
+        var current = SessionManager.getUser();
         AuthorizationService.require(AuthorizationService.canManageUsers(current));
         return userRepository.listUsers();
     }
@@ -50,28 +49,19 @@ public class UserService {
     // Method - create user with initial password and force password change
     public void createUserWithInitialPassword(String username, Role role, String initialPassword) {
 
-        var current = requireLoggedInUser();
+        var current = SessionManager.getUser();
         AuthorizationService.require(AuthorizationService.canManageUsers(current));
 
-        // validate username
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("Username is required.");
-        }
+        String uname = validateUsername(username);
 
-        // validate role
         if (role == null) {
             throw new IllegalArgumentException("Role is required.");
         }
 
-        // prevent owner creation through UI service
         if (role == Role.OWNER) {
             throw new IllegalArgumentException("Owner accounts are not created here.");
         }
 
-        // normalize username for storage
-        String uname = username.trim().toLowerCase();
-
-        // validate password rules
         String p = initialPassword == null ? "" : initialPassword.trim();
         if (p.length() < 8) {
             throw new IllegalArgumentException("Password must be at least 8 characters.");
@@ -80,75 +70,71 @@ public class UserService {
             throw new IllegalArgumentException("Password cannot contain spaces.");
         }
 
-        // hash password before storing
         String hash = PasswordUtil.hash(p);
 
-        // insert user and return generated id
         long newUserId = userRepository.insertUser(uname, hash, role.name(), true, true);
 
-        // record user creation event
         auditService.log(current.getId(), "CREATE_USER",
                 "target_user_id=" + newUserId + " username=" + uname + " role=" + role.name() + " must_change_password=1");
+    }
+
+    // Method - update selected user username and role
+    public void updateUser(long targetUserId, String username, Role newRole) {
+
+        var current = SessionManager.getUser();
+        AuthorizationService.require(AuthorizationService.canManageUsers(current));
+
+        if (targetUserId <= 0) {
+            throw new IllegalArgumentException("Valid user id is required.");
+        }
+
+        String uname = validateUsername(username);
+
+        if (newRole == null) {
+            throw new IllegalArgumentException("Role is required.");
+        }
+
+        if (newRole == Role.OWNER) {
+            throw new IllegalArgumentException("Cannot assign Owner role here.");
+        }
+
+        if (isOwnerAccount(targetUserId)) {
+            throw new IllegalArgumentException("Owner accounts cannot be changed.");
+        }
+
+        userRepository.setUsername(targetUserId, uname);
+        userRepository.setRole(targetUserId, newRole.name());
+
+        auditService.log(current.getId(), "UPDATE_USER",
+                "target_user_id=" + targetUserId + " username=" + uname + " role=" + newRole.name());
     }
 
     // Method - enable or disable user account
     public void setActive(long targetUserId, boolean active) {
 
-        var current = requireLoggedInUser();
+        var current = SessionManager.getUser();
         AuthorizationService.require(AuthorizationService.canManageUsers(current));
 
-        // prevent disabling owner accounts
         if (isOwnerAccount(targetUserId)) {
             throw new IllegalArgumentException("Owner accounts cannot be disabled.");
         }
 
         userRepository.setActive(targetUserId, active);
 
-        // record account status change
         auditService.log(current.getId(), "SET_USER_ACTIVE",
                 "target_user_id=" + targetUserId + " active=" + active);
-    }
-
-    // Method - update user role
-    public void changeRole(long targetUserId, Role newRole) {
-
-        var current = requireLoggedInUser();
-        AuthorizationService.require(AuthorizationService.canManageUsers(current));
-
-        // validate role
-        if (newRole == null) {
-            throw new IllegalArgumentException("Role is required.");
-        }
-
-        // prevent assigning owner role through UI service
-        if (newRole == Role.OWNER) {
-            throw new IllegalArgumentException("Cannot assign Owner role here.");
-        }
-
-        // prevent role changes for owner accounts
-        if (isOwnerAccount(targetUserId)) {
-            throw new IllegalArgumentException("Owner accounts cannot be changed.");
-        }
-
-        userRepository.setRole(targetUserId, newRole.name());
-
-        // record role change
-        auditService.log(current.getId(), "CHANGE_USER_ROLE",
-                "target_user_id=" + targetUserId + " role=" + newRole.name());
     }
 
     // Method - reset user password and require change at next login
     public void resetPasswordTo(long targetUserId, String newTempPassword) {
 
-        var current = requireLoggedInUser();
+        var current = SessionManager.getUser();
         AuthorizationService.require(AuthorizationService.canManageUsers(current));
 
-        // prevent resetting owner accounts
         if (isOwnerAccount(targetUserId)) {
             throw new IllegalArgumentException("Owner accounts cannot be reset here.");
         }
 
-        // validate temporary password rules
         String p = newTempPassword == null ? "" : newTempPassword.trim();
         if (p.length() < 8) {
             throw new IllegalArgumentException("Temporary password must be at least 8 characters.");
@@ -157,12 +143,10 @@ public class UserService {
             throw new IllegalArgumentException("Temporary password cannot contain spaces.");
         }
 
-        // hash new temporary password
         String hash = PasswordUtil.hash(p);
 
         userRepository.adminResetPassword(targetUserId, hash);
 
-        // record password reset event
         auditService.log(current.getId(), "RESET_PASSWORD",
                 "target_user_id=" + targetUserId + " must_change_password=1");
     }
@@ -170,18 +154,15 @@ public class UserService {
     // Method - change password for currently logged in user
     public void changeOwnPassword(String currentPassword, String newPassword) {
 
-        var user = requireLoggedInUser();
+        var user = SessionManager.getUser();
 
-        // read stored password hash
         String currentHash = userRepository.getPasswordHashById(user.getId());
 
-        // verify current password
         if (!PasswordUtil.verify(currentPassword, currentHash)) {
             auditService.log(user.getId(), "CHANGE_PASSWORD_FAILED", "Bad current password");
             throw new IllegalArgumentException("Current password is incorrect.");
         }
 
-        // validate new password rules
         String p = newPassword == null ? "" : newPassword.trim();
         if (p.length() < 8) {
             throw new IllegalArgumentException("New password must be at least 8 characters.");
@@ -190,25 +171,29 @@ public class UserService {
             throw new IllegalArgumentException("New password cannot contain spaces.");
         }
 
-        // hash new password and update stored value
         String newHash = PasswordUtil.hash(p);
         userRepository.updatePassword(user.getId(), newHash);
 
-        // record successful password change
         auditService.log(user.getId(), "CHANGE_PASSWORD_SUCCESS", "Password changed");
+    }
+
+    // Method - validate and normalize username
+    private String validateUsername(String username) {
+        String uname = username == null ? "" : username.trim().toLowerCase();
+
+        if (uname.isBlank()) {
+            throw new IllegalArgumentException("Username is required.");
+        }
+
+        if (uname.contains(" ")) {
+            throw new IllegalArgumentException("Username cannot contain spaces.");
+        }
+
+        return uname;
     }
 
     // Method - check if target account has owner role
     private boolean isOwnerAccount(long userId) {
         return userRepository.getRoleById(userId) == Role.OWNER;
-    }
-
-    // Method - require authenticated session user
-    private User requireLoggedInUser() {
-        User user = SessionManager.getUser();
-        if (user == null) {
-            throw new IllegalStateException("No user is logged in.");
-        }
-        return user;
     }
 }

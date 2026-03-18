@@ -38,9 +38,9 @@ public class SalesEntryController {
     // Method - initialize sales entry screen
     @FXML
     private void initialize() {
+        hideMessage();
         loadCategories();
-        
-        // display product names in dropdown list
+
         productComboBox.setCellFactory(listView -> new javafx.scene.control.ListCell<>() {
             @Override
             protected void updateItem(Product item, boolean empty) {
@@ -49,7 +49,6 @@ public class SalesEntryController {
             }
         });
 
-        // display product name in combo box after selection
         productComboBox.setButtonCell(new javafx.scene.control.ListCell<>() {
             @Override
             protected void updateItem(Product item, boolean empty) {
@@ -58,18 +57,16 @@ public class SalesEntryController {
             }
         });
 
-        // reload products when the selected category changes
         categoryComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
             loadProductsForCategory(newValue);
-            availableQuantityLabel.setText("Available quantity: ");
+            availableQuantityLabel.setText("Select a product to view current stock.");
         });
 
-        // update displayed quantity when selected product changes
         productComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue == null) {
-                availableQuantityLabel.setText("Available quantity: ");
+                availableQuantityLabel.setText("Select a product to view current stock.");
             } else {
-                availableQuantityLabel.setText("Available quantity: " + newValue.getQuantityOnHand());
+                availableQuantityLabel.setText("Current stock: " + newValue.getQuantityOnHand());
             }
         });
     }
@@ -95,9 +92,11 @@ public class SalesEntryController {
     @FXML
     private void onSubmitSale() {
         try {
+            hideMessage();
+
             Product selectedProduct = productComboBox.getValue();
             if (selectedProduct == null) {
-                messageLabel.setText("Select a product.");
+                showError("Please select a product.");
                 return;
             }
 
@@ -105,27 +104,25 @@ public class SalesEntryController {
 
             salesService.recordSale(selectedProduct.getId(), quantity);
 
-            messageLabel.setText("Sale recorded.");
+            showSuccess("Sale recorded successfully.");
             quantityField.clear();
 
-            // reload products to reflect updated quantity
             String selectedCategory = categoryComboBox.getValue();
             loadProductsForCategory(selectedCategory);
 
-            // restore selected product if it still exists
             for (Product product : productComboBox.getItems()) {
                 if (product.getId() == selectedProduct.getId()) {
                     productComboBox.setValue(product);
-                    availableQuantityLabel.setText("Available quantity: " + product.getQuantityOnHand());
+                    availableQuantityLabel.setText("Current stock: " + product.getQuantityOnHand());
                     return;
                 }
             }
-            // clear selection if product no longer available in refreshed list
-            productComboBox.getSelectionModel().clearSelection();
-            availableQuantityLabel.setText("Available quantity: ");
 
-        } catch (Exception ex) { // validation or service error
-            messageLabel.setText(ex.getMessage());
+            productComboBox.getSelectionModel().clearSelection();
+            availableQuantityLabel.setText("Select a product to view current stock.");
+
+        } catch (Exception ex) {
+            showError(ex.getMessage());
         }
     }
 
@@ -136,8 +133,8 @@ public class SalesEntryController {
         productComboBox.setItems(FXCollections.observableArrayList());
         productComboBox.getSelectionModel().clearSelection();
         quantityField.clear();
-        availableQuantityLabel.setText("Available quantity: ");
-        messageLabel.setText("");
+        availableQuantityLabel.setText("Select a product to view current stock.");
+        hideMessage();
     }
 
     // Method - return to main menu
@@ -153,5 +150,32 @@ public class SalesEntryController {
         } catch (Exception e) {
             throw new IllegalArgumentException(errorMessage);
         }
+    }
+
+    // Method - display success message
+    private void showSuccess(String text) {
+        showMessage(text, "message-success");
+    }
+
+    // Method - display error message
+    private void showError(String text) {
+        showMessage(text, "message-error");
+    }
+
+    // Method - display styled message
+    private void showMessage(String text, String styleClass) {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.getStyleClass().add(styleClass);
+        messageLabel.setText(text);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
+    // Method - hide message label
+    private void hideMessage() {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.setText("");
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
     }
 }

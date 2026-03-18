@@ -1,16 +1,16 @@
 /*
  * Purpose:
  * - owner only UI for managing user accounts
- * 
+ *
  * Function:
- * - load and display list of users in TableView
- * - creates new users with owner-chosen initial passwords
- * - changes user role
- * - enable or disable accounts instead of deleting them for better logging
- * - resets passwords using pop up, which also forces user to create new password on next login
- * 
+ * - loads and displays list of users in TableView
+ * - creates new users with owner chosen temporary passwords
+ * - updates selected user username and role
+ * - updates active status for selected user
+ * - resets passwords and forces change at next login
+ *
  * Dependencies:
- * - UserService for all user admin operations
+ * - UserService for user administration
  * - Router for navigation
  */
 
@@ -23,23 +23,34 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 
 public class UserManagementController {
 
-    @FXML private TextField newUsernameField; // input for new username
-    @FXML private ComboBox<Role> newRoleCombo; // role selection for new user
+    @FXML private TextField newUsernameField; // new username input
+    @FXML private ComboBox<Role> newRoleCombo; // new user role selection
 
-    @FXML private TableView<UserSummary> userTable; // displays user accounts
+    @FXML private TableView<UserSummary> userTable; // user table
     @FXML private TableColumn<UserSummary, Long> colId; // user id column
     @FXML private TableColumn<UserSummary, String> colUsername; // username column
     @FXML private TableColumn<UserSummary, Role> colRole; // role column
     @FXML private TableColumn<UserSummary, Boolean> colActive; // active status column
 
-    @FXML private ComboBox<Role> editRoleCombo; // role selection for existing user
-    @FXML private Label messageLabel; // displays status and validation messages
+    @FXML private TextField editUsernameField; // selected user username input
+    @FXML private ComboBox<Role> editRoleCombo; // selected user role input
+    @FXML private CheckBox activeCheckBox; // selected user active flag
+    @FXML private Label messageLabel; // status and validation message
 
     private final UserService userService = new UserService(); // user administration logic
     private final ObservableList<UserSummary> userRows = FXCollections.observableArrayList(); // table backing list
@@ -47,26 +58,34 @@ public class UserManagementController {
     // Method - initialize user management screen
     @FXML
     private void initialize() {
+        hideMessage();
 
-        // limit UI role options to non owner roles
         newRoleCombo.setItems(FXCollections.observableArrayList(Role.MANAGER, Role.STAFF));
         editRoleCombo.setItems(FXCollections.observableArrayList(Role.MANAGER, Role.STAFF));
 
-        // bind observable list to table
         userTable.setItems(userRows);
 
-        // rebuild table columns in expected order
         userTable.getColumns().clear();
         userTable.getColumns().addAll(colId, colUsername, colRole, colActive);
 
-        // map table columns to UserSummary properties
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
         colActive.setCellValueFactory(new PropertyValueFactory<>("active"));
 
-        // stretch columns to fit table width
         userTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        userTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                editUsernameField.setText(newSelection.getUsername());
+                editRoleCombo.setValue(newSelection.getRole());
+                activeCheckBox.setSelected(newSelection.isActive());
+            } else {
+                editUsernameField.clear();
+                editRoleCombo.getSelectionModel().clearSelection();
+                activeCheckBox.setSelected(false);
+            }
+        });
 
         refresh();
     }
@@ -74,174 +93,141 @@ public class UserManagementController {
     // Method - create new user from form input
     @FXML
     private void onCreateUser() {
-
-        // read selected role for new user
-        var role = newRoleCombo.getValue();
+        Role role = newRoleCombo.getValue();
         if (role == null) {
-            messageLabel.setText("Select a role for the new user.");
+            showError("Please select a role for the new user.");
             return;
         }
 
-        // read username from form
-        String uname = newUsernameField.getText();
-        if (uname == null || uname.isBlank()) {
-            messageLabel.setText("Enter a username.");
+        String username = newUsernameField.getText();
+        if (username == null || username.isBlank()) {
+            showError("Please enter a username.");
             return;
         }
 
         try {
-            // prompt owner to set initial password
-            String initialPassword = promptForPassword("Create User", "Set initial password for: " + uname);
-            if (initialPassword == null) return;
+            String initialPassword = promptForPassword("Create User", "Set a temporary password for: " + username);
+            if (initialPassword == null) {
+                return;
+            }
 
-            userService.createUserWithInitialPassword(uname, role, initialPassword);
+            userService.createUserWithInitialPassword(username, role, initialPassword);
 
-            messageLabel.setText("User created. They must change password at first login.");
-
-            // clear form after successful creation
+            showSuccess("User created successfully. Password change required at first sign-in.");
             newUsernameField.clear();
             newRoleCombo.getSelectionModel().clearSelection();
-
             refresh();
 
-        } catch (Exception ex) { // display service or validation error
-            messageLabel.setText(ex.getMessage());
+        } catch (Exception ex) {
+            showError(ex.getMessage());
         }
     }
 
-    // Method - apply selected role to selected user
+    // Method - update selected user from form input
     @FXML
-    private void onApplyRole() {
-
-        // require selected table row
-        var selected = userTable.getSelectionModel().getSelectedItem();
+    private void onUpdateUser() {
+        UserSummary selected = userTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            messageLabel.setText("Select a user first.");
+            showError("Please select a user.");
             return;
         }
 
-        // require selected replacement role
         Role newRole = editRoleCombo.getValue();
         if (newRole == null) {
-            messageLabel.setText("Select a role to apply.");
+            showError("Please select a role.");
             return;
         }
 
         try {
-            userService.changeRole(selected.getId(), newRole);
-            messageLabel.setText("Role updated.");
+            userService.updateUser(selected.getId(), editUsernameField.getText(), newRole);
+            showSuccess("User updated successfully.");
             refresh();
 
-        } catch (Exception ex) { // display service or validation error
-            messageLabel.setText(ex.getMessage());
+        } catch (Exception ex) {
+            showError(ex.getMessage());
         }
     }
 
-    // Method - disable selected user account
+    // Method - toggle active status for selected user
     @FXML
-    private void onDisable() {
-        setActive(false);
-    }
+    private void onToggleActive() {
+        UserSummary selected = userTable.getSelectionModel().getSelectedItem();
 
-    // Method - enable selected user account
-    @FXML
-    private void onEnable() {
-        setActive(true);
-    }
-
-    // Method - update selected user active status
-    private void setActive(boolean active) {
-
-        // require selected table row
-        var selected = userTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            messageLabel.setText("Select a user first.");
+            showError("Please select a user first.");
+            activeCheckBox.setSelected(!activeCheckBox.isSelected());
             return;
         }
 
         try {
-            userService.setActive(selected.getId(), active);
-
-            // show result based on chosen action
-            messageLabel.setText(active ? "User enabled." : "User disabled.");
-
+            userService.setActive(selected.getId(), activeCheckBox.isSelected());
+            showSuccess("User status updated successfully.");
             refresh();
 
-        } catch (Exception ex) { // display service or validation error
-            messageLabel.setText(ex.getMessage());
+        } catch (Exception ex) {
+            showError(ex.getMessage());
+            activeCheckBox.setSelected(!activeCheckBox.isSelected());
         }
     }
 
     // Method - reset password for selected user
     @FXML
     private void onResetPassword() {
-
-        // require selected table row
-        var selected = userTable.getSelectionModel().getSelectedItem();
+        UserSummary selected = userTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            messageLabel.setText("Select a user first.");
+            showError("Please select a user.");
             return;
         }
 
         try {
-            // prompt owner for temporary password
-            String pw = promptForPassword("Reset Password", "Set temporary password for: " + selected.getUsername());
-            if (pw == null) return;
+            String password = promptForPassword("Reset Password", "Set a temporary password for: " + selected.getUsername());
+            if (password == null) {
+                return;
+            }
 
-            userService.resetPasswordTo(selected.getId(), pw);
-
-            messageLabel.setText("Password reset. User must change password at login.");
-
+            userService.resetPasswordTo(selected.getId(), password);
+            showSuccess("Password reset successfully. Password change required at next sign-in.");
             refresh();
 
-        } catch (Exception ex) { // display service or validation error
-            messageLabel.setText(ex.getMessage());
+        } catch (Exception ex) {
+            showError(ex.getMessage());
         }
     }
 
-    // Method - show password dialog with confirmation and validation
+    // Method - show password dialog with confirmation
     private String promptForPassword(String title, String header) {
-
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.setHeaderText(header);
 
-        // define OK button for dialog result handling
         ButtonType okType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(okType, ButtonType.CANCEL);
 
-        // first password entry
-        PasswordField pw1 = new PasswordField();
-        pw1.setPromptText("Password (8+ characters, no spaces)");
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Password (8+ characters, no spaces)");
 
-        // confirmation entry
-        PasswordField pw2 = new PasswordField();
-        pw2.setPromptText("Confirm password");
+        PasswordField confirmField = new PasswordField();
+        confirmField.setPromptText("Confirm password");
 
-        // stack password fields vertically
-        VBox box = new VBox(8, pw1, pw2);
+        VBox box = new VBox(8, passwordField, confirmField);
         dialog.getDialogPane().setContent(box);
 
-        // disable OK until password rules pass
         Node okButton = dialog.getDialogPane().lookupButton(okType);
         okButton.setDisable(true);
 
-        // validate length, match, and no spaces
         Runnable validate = () -> {
-            String a = pw1.getText() == null ? "" : pw1.getText();
-            String b = pw2.getText() == null ? "" : pw2.getText();
-            boolean longEnough = a.length() >= 8;
-            boolean matches = a.equals(b);
-            boolean noSpaces = !a.contains(" ");
+            String first = passwordField.getText() == null ? "" : passwordField.getText();
+            String second = confirmField.getText() == null ? "" : confirmField.getText();
+            boolean longEnough = first.length() >= 8;
+            boolean matches = first.equals(second);
+            boolean noSpaces = !first.contains(" ");
             okButton.setDisable(!(longEnough && matches && noSpaces));
         };
 
-        // revalidate on each text change
-        pw1.textProperty().addListener((obs, o, n) -> validate.run());
-        pw2.textProperty().addListener((obs, o, n) -> validate.run());
+        passwordField.textProperty().addListener((obs, oldValue, newValue) -> validate.run());
+        confirmField.textProperty().addListener((obs, oldValue, newValue) -> validate.run());
 
-        // return trimmed password only when OK selected
-        dialog.setResultConverter(btn -> btn == okType ? pw1.getText().trim() : null);
+        dialog.setResultConverter(button -> button == okType ? passwordField.getText().trim() : null);
 
         return dialog.showAndWait().orElse(null);
     }
@@ -249,10 +235,15 @@ public class UserManagementController {
     // Method - reload user table from database
     @FXML
     private void onRefresh() {
-        refresh();
+        try {
+            refresh();
+            showSuccess("User list refreshed.");
+        } catch (Exception ex) {
+            showError(ex.getMessage());
+        }
     }
 
-    // Method - refresh user rows for table view
+    // Method - refresh user rows
     private void refresh() {
         userRows.setAll(userService.listUsers());
     }
@@ -261,5 +252,32 @@ public class UserManagementController {
     @FXML
     private void onBack() {
         Router.showMain();
+    }
+
+    // Method - show success message
+    private void showSuccess(String text) {
+        showMessage(text, "message-success");
+    }
+
+    // Method - show error message
+    private void showError(String text) {
+        showMessage(text, "message-error");
+    }
+
+    // Method - apply message style and text
+    private void showMessage(String text, String styleClass) {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.getStyleClass().add(styleClass);
+        messageLabel.setText(text);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
+    // Method - clear and hide message
+    private void hideMessage() {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.setText("");
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
     }
 }

@@ -38,6 +38,8 @@ public class LoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
+        hideMessage();
+
         authService.login(username, password).ifPresentOrElse(
                 user -> {
                     SessionManager.setUser(user);
@@ -48,7 +50,34 @@ public class LoginController {
                         Router.showMain();
                     }
                 },
-                () -> messageLabel.setText("Invalid username or password.")
+                () -> showError("Sign-in failed. Check your username and password and try again.")
         );
+    }
+
+    // Method - display success message
+    private void showSuccess(String text) {
+        showMessage(text, "message-success");
+    }
+
+    // Method - display error message
+    private void showError(String text) {
+        showMessage(text, "message-error");
+    }
+
+    // Method - display styled message
+    private void showMessage(String text, String styleClass) {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.getStyleClass().add(styleClass);
+        messageLabel.setText(text);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
+    // Method - hide message label
+    private void hideMessage() {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.setText("");
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
     }
 }

@@ -20,6 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -40,6 +41,8 @@ public class ReorderAlertsController {
     // Method - initialize reorder alerts screen
     @FXML
     private void initialize() {
+        hideMessage();
+
         reorderTable.setItems(reorderRows);
 
         colProductId.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getProductId()));
@@ -48,6 +51,30 @@ public class ReorderAlertsController {
         colQuantityOnHand.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getQuantityOnHand()));
         colReorderThreshold.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getReorderThreshold()));
         colStatus.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getStatus()));
+
+        colStatus.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String status, boolean empty) {
+                super.updateItem(status, empty);
+
+                getStyleClass().removeAll("status-low", "status-threshold", "status-normal");
+
+                if (empty || status == null) {
+                    setText(null);
+                    return;
+                }
+
+                setText(status);
+
+                if ("LOW".equalsIgnoreCase(status)) {
+                    getStyleClass().add("status-low");
+                } else if ("AT THRESHOLD".equalsIgnoreCase(status)) {
+                    getStyleClass().add("status-threshold");
+                } else {
+                    getStyleClass().add("status-normal");
+                }
+            }
+        });
 
         reorderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -58,7 +85,6 @@ public class ReorderAlertsController {
     @FXML
     private void onRefresh() {
         refresh();
-        messageLabel.setText("Reorder alerts refreshed.");
     }
 
     // Method - return to main menu
@@ -72,9 +98,36 @@ public class ReorderAlertsController {
         reorderRows.setAll(reorderService.getReorderAlerts());
 
         if (reorderRows.isEmpty()) {
-            messageLabel.setText("No products currently require reorder attention.");
+            showSuccess("All products are sufficiently stocked.");
         } else {
-            messageLabel.setText("Products requiring reorder attention: " + reorderRows.size());
+            showError(reorderRows.size() + " products require attention.");
         }
+    }
+
+    // Method - display success message
+    private void showSuccess(String text) {
+        showMessage(text, "message-success");
+    }
+
+    // Method - display error message
+    private void showError(String text) {
+        showMessage(text, "message-error");
+    }
+
+    // Method - display styled message
+    private void showMessage(String text, String styleClass) {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.getStyleClass().add(styleClass);
+        messageLabel.setText(text);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
+    // Method - hide message label
+    private void hideMessage() {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.setText("");
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
     }
 }

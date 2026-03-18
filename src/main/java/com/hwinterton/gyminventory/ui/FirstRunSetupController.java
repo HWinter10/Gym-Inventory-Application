@@ -1,11 +1,12 @@
 /*
  * Purpose:
  * - controls first run setup screen
- * 
+ *
  * Function:
  * - displays generated temporary credentials for seeded owner accounts
+ * - shows username and password for each first run account
  * - routes user to login screen after acknowledging credentials
- * 
+ *
  * Dependencies:
  * - StartupContext for generated first run credentials
  * - Router for navigation
@@ -19,14 +20,14 @@ import javafx.scene.control.Label;
 
 public class FirstRunSetupController {
 
-    @FXML private Label ownerLabel; // displays owner temporary password
-    @FXML private Label backupLabel; // displays backup owner temporary password
+    @FXML private Label ownerLabel; // displays owner username and temporary password
+    @FXML private Label backupLabel; // displays backup owner username and temporary password
 
     // Method - initialize first run setup screen with generated credentials
     @FXML
     private void initialize() {
-        ownerLabel.setText("owner : " + StartupContext.getOwnerPassword());
-        backupLabel.setText("owner_backup : " + StartupContext.getBackupOwnerPassword());
+        ownerLabel.setText("Username: owner | Temporary password: " + StartupContext.getOwnerPassword());
+        backupLabel.setText("Username: owner_backup | Temporary password: " + StartupContext.getBackupOwnerPassword());
     }
 
     // Method - continue from first run screen to login

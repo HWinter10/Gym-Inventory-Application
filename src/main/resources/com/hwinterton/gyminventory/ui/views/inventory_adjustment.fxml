@@ -3,57 +3,107 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.hwinterton.gyminventory.ui.InventoryAdjustmentController"
-      spacing="14"
-      alignment="CENTER"
-      prefWidth="760"
-      prefHeight="520">
+<!-- Inventory adjustment screen -->
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.hwinterton.gyminventory.ui.InventoryAdjustmentController">
 
-    <Label text="Inventory Adjustment" style="-fx-font-size: 18px;" />
-    <Label text="Record stock changes with required reason codes" />
+    <top>
+        <!-- Main content -->
+        <VBox spacing="10" alignment="CENTER" styleClass="panel">
 
-    <HBox spacing="10" alignment="CENTER">
-        <Label text="Category:" />
-        <ComboBox fx:id="categoryComboBox" prefWidth="220" promptText="Select category" />
-    </HBox>
+            <!-- Header and status message -->
+            <Label text="Adjust Inventory" styleClass="screen-title" />
+            <Label text="Record stock changes with a required reason" />
+            <Label fx:id="messageLabel"
+                   styleClass="message"
+                   wrapText="true"
+                   visible="false"
+                   managed="false"
+                   maxWidth="500" />
 
-    <HBox spacing="10" alignment="CENTER">
-        <Label text="Product:" />
-        <ComboBox fx:id="productComboBox" prefWidth="320" promptText="Select product" />
-    </HBox>
+            <!-- Form section -->
+            <Separator prefWidth="720" />
+            <Label text="Adjustment Details" styleClass="section-title" />
 
-    <HBox spacing="10" alignment="CENTER">
-        <Label text="Direction:" />
-        <ComboBox fx:id="directionComboBox" prefWidth="140" promptText="Select direction" />
+            <!-- Form fields -->
+            <VBox spacing="10" alignment="CENTER" styleClass="form-block">
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Category:" minWidth="110" />
+                    <ComboBox fx:id="categoryComboBox"
+                              prefWidth="260"
+                              promptText="Select category" />
+                </HBox>
 
-        <Label text="Amount:" />
-        <TextField fx:id="amountField" prefWidth="120" promptText="Enter amount" />
-    </HBox>
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Product:" minWidth="110" />
+                    <ComboBox fx:id="productComboBox"
+                              prefWidth="260"
+                              promptText="Select product" />
+                </HBox>
 
-    <HBox spacing="10" alignment="CENTER">
-        <Label text="Reason:" />
-        <ComboBox fx:id="reasonComboBox" prefWidth="220" promptText="Select reason code" />
-    </HBox>
+                <!-- Adjustment inputs -->
+                <!-- ComboBoxes and fields read by controller during submit -->
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Direction:" minWidth="110" />
+                    <ComboBox fx:id="directionComboBox"
+                              prefWidth="260"
+                              promptText="Select type" />
+                </HBox>
 
-    <VBox spacing="6" alignment="CENTER">
-        <Label text="Notes:" />
-        <TextArea fx:id="notesArea" prefWidth="520" prefHeight="120" wrapText="true" promptText="Optional notes" />
-    </VBox>
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Amount:" minWidth="110" />
+                    <TextField fx:id="amountField"
+                               prefWidth="260"
+                               promptText="Enter amount" />
+                </HBox>
 
-    <Label fx:id="availableQuantityLabel" text="Available quantity: " />
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Reason:" minWidth="110" />
+                    <ComboBox fx:id="reasonComboBox"
+                              prefWidth="260"
+                              promptText="Select reason" />
+                </HBox>
 
-    <HBox spacing="10" alignment="CENTER">
-        <Button text="Submit Adjustment" onAction="#onSubmitAdjustment" />
-        <Button text="Clear" onAction="#onClear" />
-        <Button text="Back" onAction="#onBack" />
-    </HBox>
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Notes (optional):" minWidth="110" />
+                    <TextArea fx:id="notesArea"
+                              prefWidth="260"
+                              prefHeight="60"
+                              wrapText="true"
+                              promptText="Optional notes" />
+                </HBox>
+            </VBox>
 
-    <Label fx:id="messageLabel" wrapText="true" />
-</VBox>
+            <!-- Current stock display -->
+            <VBox spacing="6"
+                  alignment="CENTER"
+                  styleClass="sub-panel form-block">
+                <Label text="Available Stock" styleClass="section-title" />
+                <Label fx:id="availableQuantityLabel" text="0" />
+            </VBox>
+        </VBox>
+    </top>
+
+    <bottom>
+        <!-- Bottom actions -->
+        <VBox spacing="8" alignment="CENTER" styleClass="action-bar">
+            <Separator />
+
+            <HBox spacing="12" alignment="CENTER">
+                <!-- Form actions -->
+                <Button text="Submit Adjustment" onAction="#onSubmitAdjustment" />
+                <Button text="Clear Form" onAction="#onClear" />
+                <Button text="Back to Menu" onAction="#onBack" />
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

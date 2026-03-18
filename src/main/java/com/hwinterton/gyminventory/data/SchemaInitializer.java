@@ -1,14 +1,14 @@
 /*
  * Purpose:
  * - creates database tables and seeds initial required data
- * 
+ *
  * Function:
  * - creates required tables if missing
  * - detects first run by checking whether users already exist
  * - generates temporary passwords for owner and backup owner accounts
  * - stores hashed passwords only
  * - records first run credentials in StartupContext for display
- * 
+ *
  * Dependencies:
  * - Database connection helper
  * - PasswordUtil for password hashing
@@ -34,6 +34,9 @@ public final class SchemaInitializer {
     public static void initialize() {
         createTables();
 
+        // reset startup context each launch
+        StartupContext.clear();
+
         // only seed accounts if no users exist yet
         if (!hasAnyUsers()) {
             seedInitialOwnerAccounts();
@@ -42,7 +45,6 @@ public final class SchemaInitializer {
 
     // Method - create required database tables
     private static void createTables() {
-    	// users table
         String usersTable = """
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,8 +55,7 @@ public final class SchemaInitializer {
                     must_change_password INTEGER NOT NULL DEFAULT 0
                 );
                 """;
-        
-        // audit log table
+
         String auditTable = """
                 CREATE TABLE IF NOT EXISTS audit_log (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,8 +65,7 @@ public final class SchemaInitializer {
                     details TEXT
                 );
                 """;
-        
-        // products table
+
         String productsTable = """
                 CREATE TABLE IF NOT EXISTS products (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,8 +76,7 @@ public final class SchemaInitializer {
                     active INTEGER NOT NULL DEFAULT 1
                 );
                 """;
-        
-        // sales transaction table
+
         String salesTable = """
                 CREATE TABLE IF NOT EXISTS sales (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,8 +86,7 @@ public final class SchemaInitializer {
                     created_at TEXT NOT NULL DEFAULT (datetime('now'))
                 );
                 """;
-        
-        // inventory adjustments table
+
         String adjustmentsTable = """
                 CREATE TABLE IF NOT EXISTS inventory_adjustments (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,7 +106,7 @@ public final class SchemaInitializer {
             conn.createStatement().execute(salesTable);
             conn.createStatement().execute(adjustmentsTable);
 
-        } catch (Exception e) { // table creation fail
+        } catch (Exception e) {
             throw new RuntimeException("Failed to create tables", e);
         }
     }
@@ -126,7 +124,7 @@ public final class SchemaInitializer {
             }
             return false;
 
-        } catch (Exception e) { // user check failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to check existing users", e);
         }
     }
@@ -142,9 +140,9 @@ public final class SchemaInitializer {
         StartupContext.setFirstRunCredentials(ownerPassword, backupPassword);
     }
 
-    // Method - insert initial user (password hashed)
+    // Method - insert initial user with hashed password
     private static void insertInitialUser(String username, String plainPassword, String role, boolean active, boolean mustChangePassword) {
-    	String insertSql = """
+        String insertSql = """
                 INSERT INTO users(username, password_hash, role, active, must_change_password)
                 VALUES(?, ?, ?, ?, ?);
                 """;
@@ -160,7 +158,7 @@ public final class SchemaInitializer {
 
             insert.executeUpdate();
 
-        } catch (Exception e) { // user insert failed
+        } catch (Exception e) {
             throw new RuntimeException("Failed to insert initial user: " + username, e);
         }
     }

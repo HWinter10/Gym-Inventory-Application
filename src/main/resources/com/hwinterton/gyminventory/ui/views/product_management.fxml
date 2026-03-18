@@ -3,50 +3,123 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.hwinterton.gyminventory.ui.ProductManagementController"
-      spacing="10"
-      alignment="CENTER"
-      prefWidth="900"
-      prefHeight="600">
+<!-- Product management screen -->
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.hwinterton.gyminventory.ui.ProductManagementController">
 
-    <Label text="Product Management" style="-fx-font-size: 18px;" />
+    <center>
+        <VBox spacing="14" alignment="CENTER">
 
-    <HBox spacing="10" alignment="CENTER">
-        <TextField fx:id="nameField" promptText="Product name" />
-        <TextField fx:id="categoryField" promptText="Category" />
-    </HBox>
+            <!-- Shared content column -->
+            <VBox spacing="14" alignment="CENTER" styleClass="content-block">
 
-    <HBox spacing="10" alignment="CENTER">
-        <TextField fx:id="quantityField" promptText="Quantity on hand" />
-        <TextField fx:id="reorderThresholdField" promptText="Reorder threshold" />
-        <CheckBox fx:id="activeCheckBox" text="Active" selected="true" />
-    </HBox>
+                <!-- Header and status message -->
+                <VBox spacing="10" alignment="CENTER" styleClass="panel content-block">
+                    <Label text="Manage Products" styleClass="screen-title" />
+                    <Label text="View and update products in inventory catalog" />
+                    <Label fx:id="messageLabel"
+                           styleClass="message"
+                           wrapText="true"
+                           visible="false"
+                           managed="false"
+                           maxWidth="500" />
+                </VBox>
 
-    <HBox spacing="10" alignment="CENTER">
-        <Button text="Create Product" onAction="#onCreateProduct" />
-        <Button text="Update Selected Product" onAction="#onUpdateProduct" />
-        <Button text="Refresh" onAction="#onRefresh" />
-        <Button text="Back" onAction="#onBack" />
-    </HBox>
+                <!-- Product table -->
+                <!-- Selected row used by controller to populate edit fields -->
+                <TableView fx:id="productTable" prefWidth="860" prefHeight="320">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="70" />
+                        <TableColumn fx:id="colName" text="Name" prefWidth="220" />
+                        <TableColumn fx:id="colCategory" text="Category" prefWidth="180" />
+                        <TableColumn fx:id="colQuantity" text="Quantity" prefWidth="170" />
+                        <TableColumn fx:id="colReorderThreshold" text="Reorder Level" prefWidth="170" />
+                        <TableColumn fx:id="colActive" text="Active" prefWidth="90" />
+                    </columns>
+                </TableView>
 
-    <TableView fx:id="productTable" prefWidth="860" prefHeight="380">
-        <columns>
-            <TableColumn fx:id="colId" text="ID" prefWidth="70" />
-            <TableColumn fx:id="colName" text="Name" prefWidth="220" />
-            <TableColumn fx:id="colCategory" text="Category" prefWidth="180" />
-            <TableColumn fx:id="colQuantity" text="Quantity On Hand" prefWidth="170" />
-            <TableColumn fx:id="colReorderThreshold" text="Reorder Threshold" prefWidth="170" />
-            <TableColumn fx:id="colActive" text="Active" prefWidth="90" />
-        </columns>
-    </TableView>
+                <!-- Update and create sections -->
+                <HBox spacing="16" alignment="TOP_CENTER" styleClass="dual-panel-row">
 
-    <Label fx:id="messageLabel" wrapText="true" />
-</VBox>
+                    <!-- Update selected product -->
+                    <VBox spacing="10"
+                          alignment="CENTER"
+                          prefWidth="422"
+                          minWidth="422"
+                          maxWidth="422"
+                          styleClass="panel">
+                        <Label text="Update Selected Product" styleClass="section-title" />
+                        <Label text="Select product above, update fields, then save." wrapText="true" maxWidth="300" />
+
+                        <!-- Edit fields -->
+                        <HBox spacing="10" alignment="CENTER">
+                            <TextField fx:id="editNameField" promptText="Product name" prefWidth="160" />
+                            <TextField fx:id="editCategoryField" promptText="Category" prefWidth="160" />
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER">
+                            <TextField fx:id="editQuantityField" promptText="Quantity on hand" prefWidth="160" />
+                            <TextField fx:id="editReorderThresholdField" promptText="Reorder level" prefWidth="160" />
+                        </HBox>
+
+                        <!-- Update action -->
+                        <HBox spacing="10" alignment="CENTER">
+                            <CheckBox fx:id="editActiveCheckBox" text="Active" />
+                            <Button text="Update" onAction="#onUpdateProduct" prefWidth="160" />
+                        </HBox>
+                    </VBox>
+
+                    <!-- Create new product -->
+                    <VBox spacing="10"
+                          alignment="CENTER"
+                          prefWidth="422"
+                          minWidth="422"
+                          maxWidth="422"
+                          styleClass="panel">
+                        <Label text="Create New Product" styleClass="section-title" />
+                        <Label text="Enter product details, then click Create." wrapText="true" maxWidth="300" />
+
+                        <!-- Create fields -->
+                        <HBox spacing="10" alignment="CENTER">
+                            <TextField fx:id="createNameField" promptText="Product name" prefWidth="160" />
+                            <TextField fx:id="createCategoryField" promptText="Category" prefWidth="160" />
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER">
+                            <TextField fx:id="createQuantityField" promptText="Quantity on hand" prefWidth="160" />
+                            <TextField fx:id="createReorderThresholdField" promptText="Reorder level" prefWidth="160" />
+                        </HBox>
+
+                        <!-- Spacer keeps create button aligned with update section -->
+                        <Region prefHeight="28" />
+
+                        <!-- Create action -->
+                        <Button text="Create" onAction="#onCreateProduct" prefWidth="160" />
+                    </VBox>
+                </HBox>
+            </VBox>
+        </VBox>
+    </center>
+
+    <bottom>
+        <!-- Bottom actions -->
+        <VBox spacing="8" alignment="CENTER" styleClass="action-bar">
+            <Separator prefWidth="860" />
+            <HBox spacing="12" alignment="CENTER">
+                <Button text="Refresh List" onAction="#onRefresh" />
+                <Button text="Back to Menu" onAction="#onBack" />
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

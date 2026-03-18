@@ -32,27 +32,56 @@ public class ChangePasswordController {
     @FXML
     private void onUpdatePassword() {
         try {
+            hideMessage();
+
             String current = currentPasswordField.getText();
             String newPass = newPasswordField.getText();
             String confirm = confirmPasswordField.getText();
 
             if (newPass == null || newPass.length() < 8) {
-                messageLabel.setText("New password must be at least 8 characters.");
+                showError("New password must be at least 8 characters long.");
                 return;
             }
 
             if (!newPass.equals(confirm)) {
-                messageLabel.setText("Passwords do not match.");
+                showError("New password and confirmation do not match.");
                 return;
             }
 
             userService.changeOwnPassword(current, newPass);
 
-            messageLabel.setText("Password updated.");
+            showSuccess("Password updated successfully.");
             Router.showMain();
 
         } catch (Exception ex) {
-            messageLabel.setText(ex.getMessage());
+            showError(ex.getMessage());
         }
+    }
+
+    // Method - display success message
+    private void showSuccess(String text) {
+        showMessage(text, "message-success");
+    }
+
+    // Method - display error message
+    private void showError(String text) {
+        showMessage(text, "message-error");
+    }
+
+    // Method - display styled message
+    private void showMessage(String text, String styleClass) {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.getStyleClass().add(styleClass);
+        messageLabel.setText(text);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
+    // Method - hide message label
+    private void hideMessage() {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.setText("");
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
     }
 }

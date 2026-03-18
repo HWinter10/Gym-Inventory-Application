@@ -2,21 +2,33 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 
+<!-- First run setup screen -->
 <VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.hwinterton.gyminventory.ui.FirstRunSetupController"
-      spacing="12"
-      alignment="CENTER"
-      prefWidth="620"
-      prefHeight="320">
+      spacing="14"
+      alignment="CENTER">
 
-    <Label text="First Run Setup" style="-fx-font-size: 18px;" />
-    <Label text="Write these down. You will be forced to change passwords after login." wrapText="true" />
+    <!-- Header -->
+    <Label text="Initial Setup Complete" styleClass="screen-title" />
+    <Label text="Record these credentials before continuing." wrapText="true" />
 
-    <Label fx:id="ownerLabel" text="owner: " />
-    <Label fx:id="backupLabel" text="owner_backup: " />
+    <!-- Section divider -->
+    <Separator prefWidth="500" />
 
-    <Button text="Continue to Login" onAction="#onContinue" />
+    <!-- Temporary credentials -->
+    <VBox spacing="12" alignment="CENTER" styleClass="panel" prefWidth="560" maxWidth="560">
+        <Label text="Initial owner accounts" styleClass="section-title" />
+        <Label fx:id="ownerLabel" wrapText="true" maxWidth="500" />
+        <Label fx:id="backupLabel" wrapText="true" maxWidth="500" />
+        <Label text="Both accounts will be required to change password at first sign-in." wrapText="true" maxWidth="500" />
+    </VBox>
+
+    <!-- Continue action -->
+    <Button text="Continue to Login"
+            onAction="#onContinue"
+            prefWidth="220" />
 </VBox>

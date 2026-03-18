@@ -1,6 +1,6 @@
 /*
  * Purpose:
- * - database access for users tables
+ * - database access for users table
  * 
  * Function:
  * - returns user data and password hash for login verification
@@ -10,6 +10,7 @@
  * - supports password change
  * - sets new hash and forces password change
  * - updates user role
+ * - updates username
  * 
  * Dependencies:
  * - Database connection helper
@@ -30,8 +31,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserRepository {
-	
-	// Method - find user record by username for login verification
+
+    // Method - find user record by username for login verification
     public Optional<UserRecord> findByUsername(String username) {
         String sql = """
                 SELECT id, username, password_hash, role, active, must_change_password
@@ -42,15 +43,12 @@ public class UserRepository {
 
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-        	
-        	// set username parameter for case insensitive lookup
+
             ps.setString(1, username);
 
-            try (ResultSet rs = ps.executeQuery()) { 
-            	// return empty if no matching user found
+            try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) return Optional.empty();
 
-                // read stored user fields from query result
                 long id = rs.getLong("id");
                 String uname = rs.getString("username");
                 String hash = rs.getString("password_hash");
@@ -58,12 +56,11 @@ public class UserRepository {
                 boolean active = rs.getInt("active") == 1;
                 boolean mustChange = rs.getInt("must_change_password") == 1;
 
-                // build domain user and pair with password hash
                 User user = new User(id, uname, role, active, mustChange);
                 return Optional.of(new UserRecord(user, hash));
             }
 
-        } catch (Exception e) { // lookup failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to query user", e);
         }
     }
@@ -78,28 +75,25 @@ public class UserRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
-        	// set values for new user row
             ps.setString(1, username);
             ps.setString(2, passwordHash);
             ps.setString(3, role);
             ps.setInt(4, active ? 1 : 0);
             ps.setInt(5, mustChangePassword ? 1 : 0);
 
-            // insert user record
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
-            	// return generated primary key
                 if (rs.next()) return rs.getLong(1);
             }
-            // fail if insert succeeded but id was not returned
+
             throw new RuntimeException("User insert succeeded but no generated id returned.");
 
-        } catch (Exception e) { // user insert failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to insert user", e);
         }
     }
-    
+
     // Method - return user summaries for admin view
     public List<UserSummary> listUsers() {
         String sql = """
@@ -114,7 +108,6 @@ public class UserRepository {
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-        	// build summary object for each returned user
             while (rs.next()) {
                 long id = rs.getLong("id");
                 String username = rs.getString("username");
@@ -127,7 +120,7 @@ public class UserRepository {
 
             return users;
 
-        } catch (Exception e) { // user list failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to list users", e);
         }
     }
@@ -138,18 +131,35 @@ public class UserRepository {
 
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-        	
-        	// set target user id
+
             ps.setLong(1, userId);
 
-            // fail if user id does not exist
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) throw new RuntimeException("User not found.");
                 return Role.valueOf(rs.getString("role"));
             }
 
-        } catch (Exception e) { // role lookup failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to read role", e);
+        }
+    }
+
+    // Method - return username for specific user id
+    public String getUsernameById(long userId) {
+        String sql = "SELECT username FROM users WHERE id = ?;";
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) throw new RuntimeException("User not found.");
+                return rs.getString("username");
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read username", e);
         }
     }
 
@@ -160,17 +170,31 @@ public class UserRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        	// set target user id
             ps.setLong(1, userId);
 
             try (ResultSet rs = ps.executeQuery()) {
-            	// fail if user id does not exist
                 if (!rs.next()) throw new RuntimeException("User not found.");
                 return rs.getString("password_hash");
             }
 
-        } catch (Exception e) { // password hash lookup failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to read password hash", e);
+        }
+    }
+
+    // Method - update username for selected user
+    public void setUsername(long userId, String username) {
+        String sql = "UPDATE users SET username = ? WHERE id = ?;";
+
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+            ps.setLong(2, userId);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update username", e);
         }
     }
 
@@ -181,12 +205,11 @@ public class UserRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        	// set new password hash and clear forced change flag
             ps.setString(1, newHash);
             ps.setLong(2, userId);
             ps.executeUpdate();
 
-        } catch (Exception e) { // password update failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to update password", e);
         }
     }
@@ -198,12 +221,11 @@ public class UserRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        	// set new password hash and force password change
             ps.setString(1, newHash);
             ps.setLong(2, userId);
             ps.executeUpdate();
 
-        } catch (Exception e) { // password reset failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to admin reset password", e);
         }
     }
@@ -215,12 +237,11 @@ public class UserRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        	// store active flag as SQLite integer
             ps.setInt(1, active ? 1 : 0);
             ps.setLong(2, userId);
             ps.executeUpdate();
 
-        } catch (Exception e) { // active flag update failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to update active flag", e);
         }
     }
@@ -232,12 +253,11 @@ public class UserRepository {
         try (Connection conn = Database.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        	// set new role value for user
             ps.setString(1, role);
             ps.setLong(2, userId);
             ps.executeUpdate();
 
-        } catch (Exception e) { // role update failure
+        } catch (Exception e) {
             throw new RuntimeException("Failed to update role", e);
         }
     }

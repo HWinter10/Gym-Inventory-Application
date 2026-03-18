@@ -1,14 +1,14 @@
 /*
  * Purpose:
  * - controls inventory adjustment screen
- * 
+ *
  * Function:
  * - loads category list
  * - filters products by selected category
  * - records inventory adjustments with required reason code
  * - refreshes available quantity after update
  * - returns to main menu
- * 
+ *
  * Dependencies:
  * - InventoryAdjustmentService for business logic
  * - Router for navigation
@@ -34,16 +34,17 @@ public class InventoryAdjustmentController {
     @FXML private ComboBox<Product> productComboBox; // product selector
     @FXML private ComboBox<String> directionComboBox; // increase or decrease selector
     @FXML private TextField amountField; // adjustment amount input
-    @FXML private ComboBox<AdjustmentReason> reasonComboBox; // required reason code selector
+    @FXML private ComboBox<AdjustmentReason> reasonComboBox; // required reason selector
     @FXML private TextArea notesArea; // optional notes
-    @FXML private Label availableQuantityLabel; // shows current quantity on hand
-    @FXML private Label messageLabel; // displays status and validation messages
+    @FXML private Label availableQuantityLabel; // current quantity display
+    @FXML private Label messageLabel; // status and validation message
 
     private final InventoryAdjustmentService adjustmentService = new InventoryAdjustmentService(); // adjustment workflow logic
 
     // Method - initialize inventory adjustment screen
     @FXML
     private void initialize() {
+        hideMessage();
         loadCategories();
 
         directionComboBox.setItems(FXCollections.observableArrayList("Increase", "Decrease"));
@@ -67,25 +68,25 @@ public class InventoryAdjustmentController {
 
         categoryComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
             loadProductsForCategory(newValue);
-            availableQuantityLabel.setText("Available quantity: ");
+            availableQuantityLabel.setText("Select a product to view current stock.");
         });
 
         productComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue == null) {
-                availableQuantityLabel.setText("Available quantity: ");
+                availableQuantityLabel.setText("Select a product to view current stock.");
             } else {
-                availableQuantityLabel.setText("Available quantity: " + newValue.getQuantityOnHand());
+                availableQuantityLabel.setText("Current stock: " + newValue.getQuantityOnHand());
             }
         });
     }
 
-    // Method - refresh categories from database
+    // Method - load categories from service
     private void loadCategories() {
         List<String> categories = adjustmentService.listCategories();
         categoryComboBox.setItems(FXCollections.observableArrayList(categories));
     }
 
-    // Method - refresh products for selected category
+    // Method - load products for selected category
     private void loadProductsForCategory(String category) {
         if (category == null || category.isBlank()) {
             productComboBox.setItems(FXCollections.observableArrayList());
@@ -96,13 +97,15 @@ public class InventoryAdjustmentController {
         productComboBox.setItems(FXCollections.observableArrayList(products));
     }
 
-    // Method - handle adjustment submission
+    // Method - submit inventory adjustment
     @FXML
     private void onSubmitAdjustment() {
         try {
+            hideMessage();
+
             Product selectedProduct = productComboBox.getValue();
             if (selectedProduct == null) {
-                messageLabel.setText("Select a product.");
+                showError("Please select a product.");
                 return;
             }
 
@@ -113,7 +116,7 @@ public class InventoryAdjustmentController {
 
             adjustmentService.recordAdjustment(selectedProduct.getId(), direction, amount, reason, notes);
 
-            messageLabel.setText("Inventory adjustment recorded.");
+            showSuccess("Inventory adjustment recorded successfully.");
             amountField.clear();
             notesArea.clear();
 
@@ -123,20 +126,20 @@ public class InventoryAdjustmentController {
             for (Product product : productComboBox.getItems()) {
                 if (product.getId() == selectedProduct.getId()) {
                     productComboBox.setValue(product);
-                    availableQuantityLabel.setText("Available quantity: " + product.getQuantityOnHand());
+                    availableQuantityLabel.setText("Current stock: " + product.getQuantityOnHand());
                     return;
                 }
             }
 
             productComboBox.getSelectionModel().clearSelection();
-            availableQuantityLabel.setText("Available quantity: ");
+            availableQuantityLabel.setText("Select a product to view current stock.");
 
-        } catch (Exception ex) { // display service or validation error
-            messageLabel.setText(ex.getMessage());
+        } catch (Exception ex) {
+            showError(ex.getMessage());
         }
     }
 
-    // Method - clear entered values
+    // Method - clear form values
     @FXML
     private void onClear() {
         categoryComboBox.getSelectionModel().clearSelection();
@@ -146,8 +149,8 @@ public class InventoryAdjustmentController {
         reasonComboBox.getSelectionModel().clearSelection();
         amountField.clear();
         notesArea.clear();
-        availableQuantityLabel.setText("Available quantity: ");
-        messageLabel.setText("");
+        availableQuantityLabel.setText("Select a product to view current stock.");
+        hideMessage();
     }
 
     // Method - return to main menu
@@ -156,12 +159,39 @@ public class InventoryAdjustmentController {
         Router.showMain();
     }
 
-    // Method - parse integer input from text field
+    // Method - parse integer from text input
     private int parseInt(String value, String errorMessage) {
         try {
             return Integer.parseInt(value == null ? "" : value.trim());
-        } catch (Exception e) { // invalid numeric input
+        } catch (Exception e) {
             throw new IllegalArgumentException(errorMessage);
         }
+    }
+
+    // Method - show success message
+    private void showSuccess(String text) {
+        showMessage(text, "message-success");
+    }
+
+    // Method - show error message
+    private void showError(String text) {
+        showMessage(text, "message-error");
+    }
+
+    // Method - apply message style and text
+    private void showMessage(String text, String styleClass) {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.getStyleClass().add(styleClass);
+        messageLabel.setText(text);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
+    // Method - clear and hide message
+    private void hideMessage() {
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        messageLabel.setText("");
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
     }
 }

@@ -2,37 +2,60 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.hwinterton.gyminventory.ui.ReorderAlertsController"
-      spacing="12"
-      alignment="CENTER"
-      prefWidth="860"
-      prefHeight="560">
+<!-- Reorder alerts screen -->
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.hwinterton.gyminventory.ui.ReorderAlertsController">
 
-    <Label text="Reorder Alerts" style="-fx-font-size: 18px;" />
-    <Label text="Products at or below threshold" />
+    <top>
+        <!-- Header and status message -->
+        <VBox spacing="10" alignment="CENTER" styleClass="panel">
+            <Label text="Reorder Alerts" styleClass="screen-title" />
+            <Label fx:id="messageLabel"
+                   styleClass="message"
+                   wrapText="true"
+                   visible="false"
+                   managed="false"
+                   maxWidth="500" />
+        </VBox>
+    </top>
 
-    <TableView fx:id="reorderTable" prefWidth="820" prefHeight="420">
-        <columns>
-            <TableColumn fx:id="colProductId" text="Product ID" prefWidth="90" />
-            <TableColumn fx:id="colProductName" text="Product Name" prefWidth="240" />
-            <TableColumn fx:id="colCategory" text="Category" prefWidth="160" />
-            <TableColumn fx:id="colQuantityOnHand" text="Quantity On Hand" prefWidth="140" />
-            <TableColumn fx:id="colReorderThreshold" text="Reorder Threshold" prefWidth="140" />
-            <TableColumn fx:id="colStatus" text="Status" prefWidth="120" />
-        </columns>
-    </TableView>
+    <center>
+        <!-- Reorder alert table -->
+        <!-- Controller loads products at or below reorder threshold -->
+        <VBox spacing="12" alignment="CENTER">
+            <TableView fx:id="reorderTable"
+                       prefWidth="820"
+                       prefHeight="450">
+                <columns>
+                    <TableColumn fx:id="colProductId" text="ID" prefWidth="90" />
+                    <TableColumn fx:id="colProductName" text="Product" prefWidth="240" />
+                    <TableColumn fx:id="colCategory" text="Category" prefWidth="160" />
+                    <TableColumn fx:id="colQuantityOnHand" text="Quantity" prefWidth="140" />
+                    <TableColumn fx:id="colReorderThreshold" text="Reorder Level" prefWidth="140" />
+                    <TableColumn fx:id="colStatus" text="Status" prefWidth="120" />
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
 
-    <HBox spacing="10" alignment="CENTER">
-        <Button text="Refresh" onAction="#onRefresh" />
-        <Button text="Back" onAction="#onBack" />
-    </HBox>
+    <bottom>
+        <!-- Bottom actions -->
+        <VBox spacing="8" alignment="CENTER" styleClass="action-bar">
+            <Separator />
 
-    <Label fx:id="messageLabel" wrapText="true" />
-</VBox>
+            <HBox spacing="12" alignment="CENTER">
+                <Button text="Refresh List" onAction="#onRefresh" />
+                <Button text="Back to Menu" onAction="#onBack" />
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

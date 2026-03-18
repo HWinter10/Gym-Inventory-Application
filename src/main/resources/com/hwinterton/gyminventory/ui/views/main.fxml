@@ -2,23 +2,105 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
+<!-- Main menu screen -->
 <VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.hwinterton.gyminventory.ui.MainController"
-      spacing="15"
-      alignment="CENTER"
-      prefWidth="500"
-      prefHeight="390">
+      spacing="18"
+      alignment="TOP_CENTER">
 
-    <Label fx:id="welcomeLabel" text="Welcome" />
-    <Label fx:id="roleLabel" text="Role:" />
+    <!-- Header -->
+    <Label text="Inventory Manager" styleClass="screen-title" />
+    <Label text="Main Menu" styleClass="screen-subtitle" />
 
-    <Button fx:id="salesEntryButton" text="Sales Entry" onAction="#onSalesEntry"/>
-    <Button fx:id="inventoryAdjustmentButton" text="Inventory Adjustment" onAction="#onInventoryAdjustment"/>
-    <Button fx:id="reorderAlertsButton" text="Reorder Alerts" onAction="#onReorderAlerts"/>
-    <Button fx:id="manageProductsButton" text="Manage Products" onAction="#onManageProducts"/>
-    <Button fx:id="manageUsersButton" text="Manage Users" onAction="#onManageUsers"/>
-    <Button text="Logout" onAction="#onLogout"/>
+    <!-- User info panels -->
+    <!-- fx:id values populated by controller after login -->
+    <HBox spacing="16" alignment="CENTER">
+
+        <!-- Logged-in user -->
+        <VBox spacing="6"
+              alignment="CENTER_LEFT"
+              prefWidth="250"
+              styleClass="sub-panel">
+            <Label fx:id="welcomeLabel" text="Signed in as:" />
+        </VBox>
+
+        <!-- User role -->
+        <VBox spacing="6"
+              alignment="CENTER_LEFT"
+              prefWidth="220"
+              styleClass="sub-panel">
+            <Label fx:id="roleLabel" text="Access level:" />
+        </VBox>
+    </HBox>
+
+    <!-- Section divider -->
+    <Separator prefWidth="820" />
+
+    <!-- Spacer for layout balance -->
+    <Region prefHeight="50" />
+
+    <!-- Main action sections -->
+    <HBox spacing="24" alignment="TOP_CENTER">
+
+        <!-- Daily tasks -->
+        <VBox spacing="12"
+              alignment="TOP_CENTER"
+              prefWidth="470"
+              styleClass="panel">
+
+            <Label text="Daily Tasks" styleClass="section-title" />
+            <Separator prefWidth="380" />
+
+            <!-- Navigation actions -->
+            <Button fx:id="salesEntryButton"
+                    text="Record Sale"
+                    onAction="#onSalesEntry"
+                    prefWidth="280" />
+
+            <Button fx:id="inventoryAdjustmentButton"
+                    text="Adjust Inventory"
+                    onAction="#onInventoryAdjustment"
+                    prefWidth="280" />
+
+            <Button fx:id="reorderAlertsButton"
+                    text="View Reorder Alerts"
+                    onAction="#onReorderAlerts"
+                    prefWidth="280" />
+        </VBox>
+
+        <!-- Administrative tools -->
+        <VBox spacing="12"
+              alignment="TOP_CENTER"
+              prefWidth="260"
+              styleClass="panel">
+
+            <Label text="Administrative Tools" styleClass="section-title" />
+            <Separator prefWidth="200" />
+
+            <!-- Admin navigation -->
+            <Button fx:id="manageProductsButton"
+                    text="Manage Products"
+                    onAction="#onManageProducts"
+                    prefWidth="220" />
+
+            <Button fx:id="manageUsersButton"
+                    text="Manage Users"
+                    onAction="#onManageUsers"
+                    prefWidth="220" />
+
+            <!-- Divider before logout -->
+            <Separator prefWidth="200" />
+
+            <!-- Session control -->
+            <Button text="Log Out"
+                    onAction="#onLogout"
+                    prefWidth="220" />
+        </VBox>
+    </HBox>
 </VBox>

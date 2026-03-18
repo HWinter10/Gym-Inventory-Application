@@ -1,23 +1,29 @@
 /*
- * Purpose: 
+ * Purpose:
  * - switches JavaFX screens
- * 
+ *
  * Function:
  * - loads FXML file with FXMLLoader
  * - sets Scene on primary Stage
- * - provides helper methods like showLogin, showMain, showUserManagement, showProductManagement, showSalesEntry, showInventoryAdjustment, showReorderAlerts, and showFirstRunSetup
- * 
+ * - protects restricted screens by checking session and role before loading
+ *
  * Dependencies:
  * - FXML resources
  * - JavaFX Stage and Scene
+ * - SessionManager for session checks
  */
 
 package com.hwinterton.gyminventory.ui;
 
+import com.hwinterton.gyminventory.domain.Role;
+import com.hwinterton.gyminventory.domain.User;
+import com.hwinterton.gyminventory.security.SessionManager;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import java.net.URL;
 
 public final class Router {
 
@@ -28,52 +34,101 @@ public final class Router {
     // Method - initialize router with primary stage
     public static void init(Stage stage) {
         primaryStage = stage;
-        primaryStage.setTitle("Gym Inventory");
+        primaryStage.setTitle("Inventory Manager");
     }
 
     // Method - route to first run setup screen
     public static void showFirstRunSetup() {
-        setScene("/com/hwinterton/gyminventory/ui/views/first_run_setup.fxml", 620, 320);
+        setScene("/com/hwinterton/gyminventory/ui/views/first_run_setup.fxml", 900, 650);
     }
 
     // Method - route to login screen
     public static void showLogin() {
-        setScene("/com/hwinterton/gyminventory/ui/views/login.fxml", 520, 360);
+        setScene("/com/hwinterton/gyminventory/ui/views/login.fxml", 560, 360);
     }
 
     // Method - route to main menu
     public static void showMain() {
-        setScene("/com/hwinterton/gyminventory/ui/views/main.fxml", 760, 600);
+        if (!SessionManager.isLoggedIn()) {
+            showLogin();
+            return;
+        }
+
+        setScene("/com/hwinterton/gyminventory/ui/views/main.fxml", 900, 650);
     }
 
     // Method - route to user management screen
     public static void showUserManagement() {
-        setScene("/com/hwinterton/gyminventory/ui/views/user_management.fxml", 760, 520);
+        User user = SessionManager.getUser();
+
+        if (user == null) {
+            showLogin();
+            return;
+        }
+
+        if (user.getRole() != Role.OWNER) {
+            showMain();
+            return;
+        }
+
+        setScene("/com/hwinterton/gyminventory/ui/views/user_management.fxml", 900, 650);
     }
 
     // Method - route to product management screen
     public static void showProductManagement() {
-        setScene("/com/hwinterton/gyminventory/ui/views/product_management.fxml", 900, 600);
+        User user = SessionManager.getUser();
+
+        if (user == null) {
+            showLogin();
+            return;
+        }
+
+        if (user.getRole() != Role.OWNER && user.getRole() != Role.MANAGER) {
+            showMain();
+            return;
+        }
+
+        setScene("/com/hwinterton/gyminventory/ui/views/product_management.fxml", 900, 650);
     }
 
     // Method - route to sales entry screen
     public static void showSalesEntry() {
-        setScene("/com/hwinterton/gyminventory/ui/views/sales_entry.fxml", 700, 420);
+        if (!SessionManager.isLoggedIn()) {
+            showLogin();
+            return;
+        }
+
+        setScene("/com/hwinterton/gyminventory/ui/views/sales_entry.fxml", 900, 650);
     }
 
     // Method - route to inventory adjustment screen
     public static void showInventoryAdjustment() {
-        setScene("/com/hwinterton/gyminventory/ui/views/inventory_adjustment.fxml", 760, 520);
+        if (!SessionManager.isLoggedIn()) {
+            showLogin();
+            return;
+        }
+
+        setScene("/com/hwinterton/gyminventory/ui/views/inventory_adjustment.fxml", 900, 650);
     }
 
     // Method - route to reorder alerts screen
     public static void showReorderAlerts() {
-        setScene("/com/hwinterton/gyminventory/ui/views/reorder_alerts.fxml", 980, 560);
+        if (!SessionManager.isLoggedIn()) {
+            showLogin();
+            return;
+        }
+
+        setScene("/com/hwinterton/gyminventory/ui/views/reorder_alerts.fxml", 900, 650);
     }
 
     // Method - route to forced password change screen
     public static void showChangePassword() {
-        setScene("/com/hwinterton/gyminventory/ui/views/change_password.fxml", 520, 360);
+        if (!SessionManager.isLoggedIn()) {
+            showLogin();
+            return;
+        }
+
+        setScene("/com/hwinterton/gyminventory/ui/views/change_password.fxml", 560, 400);
     }
 
     // Method - load FXML and apply new scene to primary stage
@@ -83,6 +138,11 @@ public final class Router {
             Parent root = loader.load();
 
             Scene scene = new Scene(root, width, height);
+
+            URL cssUrl = Router.class.getResource("/com/hwinterton/gyminventory/ui/styles/app.css");
+            if (cssUrl != null) {
+                scene.getStylesheets().add(cssUrl.toExternalForm());
+            }
 
             primaryStage.setScene(scene);
             primaryStage.show();
