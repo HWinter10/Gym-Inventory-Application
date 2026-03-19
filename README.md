@@ -31,30 +31,36 @@ This project is being developed as a capstone project using a layered architectu
 ### Application Preview:
 #### Role Based Access Control (Restricted User View)
 Buttons that require certain permissions are disabled for lower level users. <br>
-<img height="350" alt="role based access control" src="https://github.com/user-attachments/assets/52ff91e7-ea70-428d-9231-62b4c05b0d07" />
+<img height="400" alt="role based access control depict" src="https://github.com/user-attachments/assets/f341e708-5aac-4d42-8443-7fa57e1ca773" />
 
 
 #### Product Management
 Administrative interface for creating and maintaining product catalog entries. <br>
-<img height="350" alt="product management" src="https://github.com/user-attachments/assets/dbd7f39e-cca3-46c9-92ce-088458c8b5d2" />
+<img height="400" alt="manage products" src="https://github.com/user-attachments/assets/862ed330-b276-4a97-ba73-b2b74a75e369" />
 
 
 #### Sales Entry Screen
 Simplified interface used by staff to record product sales. <br>
-<img height="350" alt="sales entry" src="https://github.com/user-attachments/assets/3e19d5af-5766-4770-8304-7438135a3de0" />
+<img height="400" alt="record sale" src="https://github.com/user-attachments/assets/d418b3f0-e873-4f25-b927-e5fc62bef7a0" />
+
+
+
+#### Inventory Adjustment Screen
+Inventory adjustment screen with reason codes. <br>
+<img height="400" alt="adjust inventory" src="https://github.com/user-attachments/assets/a6070ff4-268d-4dfd-a131-2a4e1efbd181" />
 
 
 #### User Management
 Interface used by administrators to manage system users and permissions. <br>
-<img height="350" alt="user management" src="https://github.com/user-attachments/assets/ebedd767-7562-4f26-a62d-fb57a4f894f3" />
+<img height="400" alt="manage users" src="https://github.com/user-attachments/assets/985031f4-c498-420f-9070-425679d02dfc" />
 
 
 #### Database Tables (SQLite)
 Example showing created database tables. <br>
-<img height="350" alt="database tables" src="https://github.com/user-attachments/assets/fc362a9f-fa6c-435e-9ad1-e504dd186eca" />
+<img height="400" alt="database tables" src="https://github.com/user-attachments/assets/fc362a9f-fa6c-435e-9ad1-e504dd186eca" />
 
 
 #### Audit Logging
 Example showing audit log entries recording system actions. <br>
-<img height="350" alt="database logging" src="https://github.com/user-attachments/assets/2b81221b-3166-4778-be6c-5efdd0827896" />
+<img height="400" alt="database logging" src="https://github.com/user-attachments/assets/2b81221b-3166-4778-be6c-5efdd0827896" />
 
