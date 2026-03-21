@@ -1,8 +1,6 @@
-<Strong>Status:</Strong> IN PROGRESS
-<br>
-## Secure Inventory and Sales Management Application
+## Secure Inventory and Sales Management Application for Local Gym
 
-A standalone desktop application designed to help small businesses track product inventory and sales without relying on manual counts or disconnected records.
+A standalone desktop application designed to help a local small gym businesses track product inventory and sales without relying on manual counts or disconnected records.
 
 The system centralizes product data, automatically updates inventory when sales occur, and restricts sensitive operations through role based access control.
 
