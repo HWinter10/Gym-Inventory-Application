@@ -61,17 +61,17 @@
             <Button fx:id="salesEntryButton"
                     text="Record Sale"
                     onAction="#onSalesEntry"
-                    prefWidth="280" />
+                    prefWidth="400" />
 
             <Button fx:id="inventoryAdjustmentButton"
                     text="Adjust Inventory"
                     onAction="#onInventoryAdjustment"
-                    prefWidth="280" />
+                    prefWidth="400" />
 
             <Button fx:id="reorderAlertsButton"
                     text="View Reorder Alerts"
                     onAction="#onReorderAlerts"
-                    prefWidth="280" />
+                    prefWidth="400" />
         </VBox>
 
         <!-- Administrative tools -->
@@ -92,6 +92,11 @@
             <Button fx:id="manageUsersButton"
                     text="Manage Users"
                     onAction="#onManageUsers"
+                    prefWidth="220" />
+
+            <Button fx:id="actionLogButton"
+                    text="View Action Logs"
+                    onAction="#onActionLog"
                     prefWidth="220" />
 
             <!-- Divider before logout -->

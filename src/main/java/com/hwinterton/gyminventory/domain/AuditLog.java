@@ -4,8 +4,9 @@ package com.hwinterton.gyminventory.domain;
 /**
  * Represents one row from the audit_log table.
  * 
- * <p>An audit log record stores a security or system action that happened in the application, such as
- * a login attempt, user management change, sale. or inventory adjustment</p>
+ * <p>An audit log record stores a security or system action that happened in
+ * the application, such as a login attempt, user management change, sale, or
+ * inventory adjustment.</p>
  */
 
 public class AuditLog {

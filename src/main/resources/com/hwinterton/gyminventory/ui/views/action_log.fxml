@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Action log viewer screen -->
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.hwinterton.gyminventory.ui.ActionLogController"
+      spacing="14"
+      alignment="TOP_CENTER">
+
+    <!-- Header -->
+    <Label text="Inventory Manager" styleClass="screen-title" />
+    <Label text="Action Log Viewer" styleClass="screen-subtitle" />
+
+    <!-- Status message -->
+    <Label fx:id="messageLabel" text="" />
+
+    <Separator prefWidth="820" />
+
+    <!-- Action buttons -->
+    <HBox spacing="12" alignment="CENTER">
+        <Button text="Refresh"
+                onAction="#onRefresh"
+                prefWidth="140" />
+
+        <Button text="Back to Main Menu"
+                onAction="#onBack"
+                prefWidth="180" />
+    </HBox>
+
+    <!-- Audit log table -->
+    <TableView fx:id="actionLogTable"
+               prefWidth="840"
+               prefHeight="470">
+
+        <columns>
+            <TableColumn fx:id="colId"
+                         text="ID"
+                         prefWidth="70" />
+
+            <TableColumn fx:id="colCreatedAt"
+                         text="Created At"
+                         prefWidth="170" />
+
+            <TableColumn fx:id="colUsername"
+                         text="User"
+                         prefWidth="140" />
+
+            <TableColumn fx:id="colAction"
+                         text="Action"
+                         prefWidth="180" />
+
+            <TableColumn fx:id="colDetails"
+                         text="Details"
+                         prefWidth="280" />
+        </columns>
+    </TableView>
+</VBox>
